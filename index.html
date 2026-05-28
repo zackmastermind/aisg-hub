@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AISG Business Hub</title>
 <meta name="version" content="1779795065">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -316,6 +316,8 @@ body::after {
   display:flex; align-items:center; padding:0 24px; gap:16px;
   position:sticky; top:0; z-index:100;
   box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .topbar::after {
   content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
@@ -543,6 +545,79 @@ tbody td { padding:15px 16px; font-size:13px; vertical-align:middle; }
   .form-row { grid-template-columns:1fr; }
   .tb-nav { overflow-x:auto; }
 }
+
+/* ══════════════════ MOBILE RESPONSIVE ══════════════════ */
+@media (max-width: 768px) {
+
+  /* Login */
+  .login-wrap { flex-direction:column; width:95%; min-height:auto; border-radius:16px; }
+  .login-left { display:none; }
+  .login-right { padding:32px 24px; }
+  .login-right h2 { font-size:24px; }
+
+  /* Hub */
+  #hubScreen { padding:24px 16px; }
+  .hub-header h1 { font-size:26px; }
+  .hub-cards { flex-direction:column; align-items:center; width:100%; }
+  .hub-card { width:100%; max-width:400px; padding:24px 20px; }
+  .hub-card h3 { font-size:18px; }
+
+  /* Topbar */
+  .topbar { padding:0 12px; gap:8px; height:56px; }
+  .tb-back { width:32px; height:32px; font-size:16px; }
+  .tb-biz { padding:5px 10px; }
+  .tb-biz-name { font-size:11px; }
+  .tb-nav { gap:2px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tb-navbtn { padding:6px 10px; font-size:10px; letter-spacing:0.5px; white-space:nowrap; }
+  .tb-user { display:none; }
+
+  /* Main content */
+  .main-content { padding:16px 12px; }
+
+  /* Stats grid */
+  .stats-grid { grid-template-columns:1fr 1fr; gap:10px; }
+  .stat-card { padding:14px; }
+  .stat-card .val { font-size:24px; }
+
+  /* Table */
+  .table-wrap { overflow-x:auto; }
+  table { min-width:500px; }
+  .table-toolbar { flex-wrap:wrap; gap:8px; padding:12px; }
+  .table-search { min-width:0; font-size:12px; }
+
+  /* Kanban */
+  .kanban { flex-direction:column; }
+  .kanban-col { min-width:100%; }
+
+  /* WA Blast */
+  .wa-grid { grid-template-columns:1fr; }
+
+  /* Modal */
+  .modal { border-radius:16px 16px 0 0; max-height:90vh; }
+  .modal-overlay { align-items:flex-end; padding:0; }
+  .form-row { grid-template-columns:1fr; }
+
+  /* Page header */
+  .page-header { flex-direction:column; align-items:flex-start; gap:12px; }
+  .page-header h2 { font-size:20px; }
+
+  /* Admin screen */
+  #adminScreen .main-content { padding:12px; }
+  .admin-grid { grid-template-columns:1fr; }
+  .wa-grid { grid-template-columns:1fr; }
+  .stats-grid { grid-template-columns:1fr 1fr; }
+  .feat-grid { grid-template-columns:1fr 1fr; }
+  .mods-grid { grid-template-columns:1fr; }
+}
+
+@media (max-width: 480px) {
+  .hub-header h1 { font-size:22px; }
+  .stats-grid { grid-template-columns:1fr 1fr; gap:8px; }
+  .stat-card .val { font-size:20px; }
+  .tb-navbtn { padding:5px 8px; font-size:9px; }
+  .page-header h2 { font-size:18px; }
+}
+
 </style>
 </head>
 <body>
@@ -2379,6 +2454,75 @@ window.addEventListener('load', () => {
     </div>
   </div>
 </div>
+
+
+<!-- ══ MOBILE BOTTOM NAV ══ -->
+<div id="mobileNav" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:#0a0a0a;border-top:1px solid var(--gold-border);padding:8px 4px 12px;">
+  <div style="display:flex;justify-content:space-around;">
+    <button onclick="showPage('dashboard',null);setMobNav(this)" class="mob-nav-btn active" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;padding:6px 4px;transition:all .2s;">
+      <span style="font-size:20px;">📊</span>
+      <span style="font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Dashboard</span>
+    </button>
+    <button onclick="showPage('leads',null);setMobNav(this)" class="mob-nav-btn" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;padding:6px 4px;transition:all .2s;">
+      <span style="font-size:20px;">👥</span>
+      <span style="font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Senarai</span>
+    </button>
+    <button onclick="showPage('pipeline',null);setMobNav(this)" class="mob-nav-btn" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;padding:6px 4px;transition:all .2s;">
+      <span style="font-size:20px;">📋</span>
+      <span style="font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Pipeline</span>
+    </button>
+    <button onclick="showPage('blast',null);setMobNav(this)" class="mob-nav-btn" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;padding:6px 4px;transition:all .2s;">
+      <span style="font-size:20px;">📤</span>
+      <span style="font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">WA Blast</span>
+    </button>
+    <button onclick="showPage('komisyen',null);setMobNav(this)" class="mob-nav-btn" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;padding:6px 4px;transition:all .2s;">
+      <span style="font-size:20px;">💰</span>
+      <span style="font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Komisyen</span>
+    </button>
+  </div>
+</div>
+
+
+<script>
+// ── MOBILE NAV ──
+function setMobNav(btn) {
+  document.querySelectorAll('.mob-nav-btn').forEach(b => {
+    b.style.color = 'var(--text3)';
+  });
+  btn.style.color = 'var(--gold)';
+}
+
+// Show/hide mobile nav & adjust content padding
+function checkMobile() {
+  const isMob = window.innerWidth <= 768;
+  const mobNav = document.getElementById('mobileNav');
+  const appScreen = document.getElementById('appScreen');
+  if (mobNav) mobNav.style.display = isMob ? 'block' : 'none';
+  if (appScreen && isMob) {
+    appScreen.querySelector('.main-content').style.paddingBottom = '80px';
+  }
+  // Hide topbar nav on mobile (use bottom nav instead)
+  const tbNav = document.querySelector('.tb-nav');
+  if (tbNav) tbNav.style.display = isMob ? 'none' : 'flex';
+}
+
+window.addEventListener('resize', checkMobile);
+// Run on page load after everything initialized
+setTimeout(checkMobile, 500);
+
+// Override showPage to also handle mobile nav highlight
+const _origShowPage = showPage;
+showPage = function(name, btn) {
+  _origShowPage(name, btn);
+  // Update mobile nav
+  const navBtns = document.querySelectorAll('.mob-nav-btn');
+  navBtns.forEach(b => b.style.color = 'var(--text3)');
+  const pageMap = {dashboard:0, leads:1, pipeline:2, blast:3, komisyen:4};
+  if (pageMap[name] !== undefined && navBtns[pageMap[name]]) {
+    navBtns[pageMap[name]].style.color = 'var(--gold)';
+  }
+};
+</script>
 
 </body>
 </html>
