@@ -618,6 +618,55 @@ tbody td { padding:15px 16px; font-size:13px; vertical-align:middle; }
   .page-header h2 { font-size:18px; }
 }
 
+
+/* ══ KALKULATOR ══ */
+.kalk-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+.kalk-card {
+  background:linear-gradient(145deg,#0e0e0e,#0a0a0a);
+  border:1px solid var(--gold-border); border-radius:16px; overflow:hidden;
+  position:relative;
+}
+.kalk-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--kc,var(--gold)),transparent); }
+.kalk-head { padding:18px 20px 14px; border-bottom:1px solid var(--gold-border); }
+.kalk-head .icon { font-size:28px; margin-bottom:8px; }
+.kalk-head h3 { font-size:15px; font-weight:800; color:var(--kc,var(--gold)); margin-bottom:4px; }
+.kalk-head p { font-size:11px; color:var(--text3); line-height:1.5; }
+.kalk-body { padding:18px 20px; }
+.kalk-result {
+  margin-top:16px; padding:16px;
+  background:rgba(201,168,76,0.06); border:1px solid var(--gold-border);
+  border-radius:var(--r2); display:none;
+}
+.kalk-result.show { display:block; }
+.kalk-result-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid rgba(201,168,76,0.08); }
+.kalk-result-row:last-child { border-bottom:none; }
+.kalk-result-row .lbl { font-size:11px; color:var(--text3); }
+.kalk-result-row .val { font-size:13px; font-weight:800; color:var(--kc,var(--gold)); }
+.kalk-result-row .val.green { color:#2BC97A; }
+.kalk-result-row .val.red { color:#E03030; }
+.kalk-status {
+  text-align:center; padding:12px; border-radius:8px; margin-top:10px;
+  font-size:13px; font-weight:800; letter-spacing:1px; text-transform:uppercase;
+}
+.kalk-status.layak { background:rgba(43,195,122,0.12); color:#2BC97A; border:1px solid rgba(43,195,122,0.25); }
+.kalk-status.tidak { background:rgba(224,48,48,0.12); color:#E03030; border:1px solid rgba(224,48,48,0.25); }
+
+/* Destination cards */
+.dest-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+.dest-card {
+  background:rgba(255,255,255,0.03); border:1px solid var(--gold-border);
+  border-radius:10px; padding:12px; cursor:pointer; transition:all .2s;
+}
+.dest-card:hover { border-color:var(--gold); background:rgba(201,168,76,0.06); }
+.dest-card .flag { font-size:22px; margin-bottom:6px; }
+.dest-card .name { font-size:12px; font-weight:700; color:var(--text); }
+.dest-card .budget { font-size:10px; color:var(--gold); margin-top:3px; font-weight:600; }
+.dest-card .nights { font-size:10px; color:var(--text3); }
+
+@media(max-width:768px) {
+  .kalk-grid { grid-template-columns:1fr; }
+}
+
 </style>
 </head>
 <body>
@@ -767,6 +816,7 @@ tbody td { padding:15px 16px; font-size:13px; vertical-align:middle; }
       <button class="tb-navbtn" onclick="showPage('pipeline',this)">Pipeline</button>
       <button class="tb-navbtn" onclick="showPage('blast',this)">WA Blast</button>
       <button class="tb-navbtn" onclick="showPage('komisyen',this)">💰 Komisyen</button>
+      <button class="tb-navbtn" onclick="showPage('kalkulator',this)">🧮 Kalkulator</button>
     </div>
     <div class="tb-right">
       <span class="tb-user" id="tbUserEmail"></span>
@@ -967,6 +1017,164 @@ tbody td { padding:15px 16px; font-size:13px; vertical-align:middle; }
         <div id="komisyenTableWrap"></div>
         <!-- Summary -->
         <div id="komisyenSummary" style="padding:16px 20px;border-top:1px solid var(--gold-border);display:flex;gap:24px;background:#0a0a0a;"></div>
+      </div>
+    </div>
+
+    <!-- KALKULATOR PAGE -->
+    <div class="page" id="page-kalkulator">
+      <div class="page-header">
+        <div>
+          <h2>🧮 Kalkulator</h2>
+          <p>Kalkulator pintar untuk Property, Loan & Travel</p>
+        </div>
+      </div>
+      <div class="kalk-grid">
+
+        <!-- LOAN CALCULATOR -->
+        <div class="kalk-card" style="--kc:#2B7FE0">
+          <div class="kalk-head">
+            <div class="icon">🏦</div>
+            <h3>Kalkulator Pinjaman Rumah</h3>
+            <p>Bank Loan & LPPSA — kira ansuran & semak kelayakan</p>
+          </div>
+          <div class="kalk-body">
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Harga Rumah (RM)</label>
+              <input class="f-input" id="loanHarga" type="number" placeholder="cth: 400000" oninput="kalkLoan()">
+            </div>
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Gaji Bersih Bulanan (RM)</label>
+              <input class="f-input" id="loanGaji" type="number" placeholder="cth: 5000" oninput="kalkLoan()">
+            </div>
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Komitmen Bulanan Sedia Ada (RM)</label>
+              <input class="f-input" id="loanKomitmen" type="number" placeholder="cth: 800" oninput="kalkLoan()">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div class="f-group">
+                <label class="f-label">Tempoh (Tahun)</label>
+                <select class="f-select" id="loanTempoh" onchange="kalkLoan()">
+                  <option value="10">10 tahun</option>
+                  <option value="15">15 tahun</option>
+                  <option value="20">20 tahun</option>
+                  <option value="25">25 tahun</option>
+                  <option value="30" selected>30 tahun</option>
+                  <option value="35">35 tahun</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Jenis Pinjaman</label>
+                <select class="f-select" id="loanJenis" onchange="kalkLoan()">
+                  <option value="bank">Bank (4.2%)</option>
+                  <option value="lppsa">LPPSA (4.0%)</option>
+                  <option value="islamic">Islamic (4.0%)</option>
+                </select>
+              </div>
+            </div>
+            <div class="kalk-result" id="loanResult">
+              <div class="kalk-result-row"><span class="lbl">Jumlah Pinjaman (90%)</span><span class="val" id="lr-jumlah">-</span></div>
+              <div class="kalk-result-row"><span class="lbl">Ansuran Bulanan</span><span class="val" id="lr-ansuran">-</span></div>
+              <div class="kalk-result-row"><span class="lbl">DSR Semasa</span><span class="val" id="lr-dsr">-</span></div>
+              <div class="kalk-result-row"><span class="lbl">DSR Selepas Loan</span><span class="val" id="lr-dsr2">-</span></div>
+              <div class="kalk-result-row"><span class="lbl">Jumlah Bayaran</span><span class="val" id="lr-total">-</span></div>
+              <div class="kalk-result-row"><span class="lbl">Jumlah Faedah</span><span class="val red" id="lr-faedah">-</span></div>
+              <div class="kalk-status" id="lr-status">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DSR CALCULATOR -->
+        <div class="kalk-card" style="--kc:#E03030">
+          <div class="kalk-head">
+            <div class="icon">📊</div>
+            <h3>DSR & Kelayakan Loan</h3>
+            <p>Semak Debt Service Ratio & maksimum pinjaman peribadi</p>
+          </div>
+          <div class="kalk-body">
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Gaji Bersih Bulanan (RM)</label>
+              <input class="f-input" id="dsrGaji" type="number" placeholder="cth: 4000" oninput="kalkDSR()">
+            </div>
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Komitmen Bulanan (RM)</label>
+              <input class="f-input" id="dsrKomitmen" type="number" placeholder="cth: 500" oninput="kalkDSR()">
+            </div>
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Jenis Pinjaman</label>
+              <select class="f-select" id="dsrJenis" onchange="kalkDSR()">
+                <option value="personal">Personal Loan (7%)</option>
+                <option value="kereta">Kereta (3%)</option>
+                <option value="rumah">Rumah (4.2%)</option>
+              </select>
+            </div>
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Tempoh (Tahun)</label>
+              <select class="f-select" id="dsrTempoh" onchange="kalkDSR()">
+                <option value="3">3 tahun</option>
+                <option value="5" selected>5 tahun</option>
+                <option value="7">7 tahun</option>
+                <option value="10">10 tahun</option>
+              </select>
+            </div>
+            <div class="kalk-result" id="dsrResult">
+              <div class="kalk-result-row"><span class="lbl">DSR Semasa</span><span class="val" id="dsr-now">-</span></div>
+              <div class="kalk-result-row"><span class="lbl">Baki DSR (max 70%)</span><span class="val green" id="dsr-baki">-</span></div>
+              <div class="kalk-result-row"><span class="lbl">Max Ansuran Baru</span><span class="val" id="dsr-maxansuran">-</span></div>
+              <div class="kalk-result-row"><span class="lbl">Max Pinjaman</span><span class="val" id="dsr-maxloan">-</span></div>
+              <div class="kalk-status" id="dsr-status">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRAVEL BUDGET -->
+        <div class="kalk-card" style="--kc:#7B3FE0">
+          <div class="kalk-head">
+            <div class="icon">✈️</div>
+            <h3>Travel Budget Finder</h3>
+            <p>Masuk budget — sistem suggest destinasi terbaik</p>
+          </div>
+          <div class="kalk-body">
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Budget Keseluruhan (RM)</label>
+              <input class="f-input" id="travBudget" type="number" placeholder="cth: 10000" oninput="kalkTravel()">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <div class="f-group">
+                <label class="f-label">Bilangan Pax</label>
+                <select class="f-select" id="travPax" onchange="kalkTravel()">
+                  <option value="1">1 orang (Solo)</option>
+                  <option value="2" selected>2 orang (Couple)</option>
+                  <option value="3">3 orang</option>
+                  <option value="4">4 orang (Family)</option>
+                  <option value="5">5+ orang (Group)</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label class="f-label">Tempoh Perjalanan</label>
+                <select class="f-select" id="travHari" onchange="kalkTravel()">
+                  <option value="3">3 Hari 2 Malam</option>
+                  <option value="5" selected>5 Hari 4 Malam</option>
+                  <option value="7">7 Hari 6 Malam</option>
+                  <option value="10">10 Hari 9 Malam</option>
+                </select>
+              </div>
+            </div>
+            <div class="f-group" style="margin-bottom:10px">
+              <label class="f-label">Gaya Percutian</label>
+              <select class="f-select" id="travGaya" onchange="kalkTravel()">
+                <option value="budget">Budget — Jimat & Santai</option>
+                <option value="standard" selected>Standard — Seimbang</option>
+                <option value="premium">Premium — Mewah & Selesa</option>
+              </select>
+            </div>
+            <div class="kalk-result" id="travResult">
+              <div class="kalk-result-row"><span class="lbl">Budget Per Orang</span><span class="val" id="trav-perorang">-</span></div>
+              <div class="kalk-result-row"><span class="lbl">Budget Per Malam</span><span class="val" id="trav-permalam">-</span></div>
+              <div id="trav-destinations"></div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -1939,6 +2147,150 @@ async function registerUserProfile(user) {
   } catch(e) {}
 }
 
+
+// ═══════════════════════════════════════
+// KALKULATOR
+// ═══════════════════════════════════════
+
+function fmtRM(n) { return 'RM ' + parseFloat(n).toLocaleString('ms-MY', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+// LOAN CALCULATOR
+function kalkLoan() {
+  const harga = parseFloat(id('loanHarga').value) || 0;
+  const gaji  = parseFloat(id('loanGaji').value) || 0;
+  const komitmen = parseFloat(id('loanKomitmen').value) || 0;
+  const tempoh = parseInt(id('loanTempoh').value) || 30;
+  const jenis = id('loanJenis').value;
+  if (!harga || !gaji) { id('loanResult').classList.remove('show'); return; }
+
+  const rateMap = { bank:4.2, lppsa:4.0, islamic:4.0 };
+  const rate = rateMap[jenis] / 100 / 12;
+  const jumlah = harga * 0.9;
+  const n = tempoh * 12;
+  const ansuran = jumlah * (rate * Math.pow(1+rate,n)) / (Math.pow(1+rate,n)-1);
+  const totalBayar = ansuran * n;
+  const totalFaedah = totalBayar - jumlah;
+  const dsrSemasa = (komitmen / gaji * 100);
+  const dsrBaru = ((komitmen + ansuran) / gaji * 100);
+  const layak = dsrBaru <= 70;
+
+  id('lr-jumlah').textContent = fmtRM(jumlah);
+  id('lr-ansuran').textContent = fmtRM(ansuran);
+  id('lr-dsr').textContent = dsrSemasa.toFixed(1) + '%';
+  id('lr-dsr2').textContent = dsrBaru.toFixed(1) + '%';
+  id('lr-dsr2').className = 'val ' + (dsrBaru > 70 ? 'red' : 'green');
+  id('lr-total').textContent = fmtRM(totalBayar);
+  id('lr-faedah').textContent = fmtRM(totalFaedah);
+  const statusEl = id('lr-status');
+  statusEl.textContent = layak ? '✅ LAYAK — DSR dalam had yang ditetapkan' : '❌ TIDAK LAYAK — DSR melebihi 70%';
+  statusEl.className = 'kalk-status ' + (layak ? 'layak' : 'tidak');
+  id('loanResult').classList.add('show');
+}
+
+// DSR CALCULATOR
+function kalkDSR() {
+  const gaji = parseFloat(id('dsrGaji').value) || 0;
+  const komitmen = parseFloat(id('dsrKomitmen').value) || 0;
+  const jenis = id('dsrJenis').value;
+  const tempoh = parseInt(id('dsrTempoh').value) || 5;
+  if (!gaji) { id('dsrResult').classList.remove('show'); return; }
+
+  const rateMap = { personal:7.0, kereta:3.0, rumah:4.2 };
+  const rate = rateMap[jenis] / 100 / 12;
+  const n = tempoh * 12;
+  const dsrSemasa = (komitmen / gaji * 100);
+  const bakiDSR = Math.max(0, 70 - dsrSemasa);
+  const maxAnsuran = (gaji * bakiDSR / 100);
+  const maxLoan = maxAnsuran * (Math.pow(1+rate,n)-1) / (rate * Math.pow(1+rate,n));
+
+  id('dsr-now').textContent = dsrSemasa.toFixed(1) + '%';
+  id('dsr-now').className = 'val ' + (dsrSemasa > 70 ? 'red' : dsrSemasa > 50 ? '' : 'green');
+  id('dsr-baki').textContent = bakiDSR.toFixed(1) + '%';
+  id('dsr-maxansuran').textContent = fmtRM(maxAnsuran);
+  id('dsr-maxloan').textContent = fmtRM(maxLoan);
+  const statusEl = id('dsr-status');
+  if (dsrSemasa >= 70) {
+    statusEl.textContent = '❌ DSR PENUH — Tiada ruang untuk pinjaman baru';
+    statusEl.className = 'kalk-status tidak';
+  } else if (dsrSemasa >= 50) {
+    statusEl.textContent = '⚠️ DSR SEDERHANA — Masih ada ruang terhad';
+    statusEl.className = 'kalk-status';
+    statusEl.style.background = 'rgba(240,165,0,0.12)';
+    statusEl.style.color = '#F0A500';
+    statusEl.style.border = '1px solid rgba(240,165,0,0.25)';
+  } else {
+    statusEl.textContent = '✅ DSR BAIK — Kelayakan pinjaman tinggi';
+    statusEl.className = 'kalk-status layak';
+    statusEl.style = '';
+  }
+  id('dsrResult').classList.add('show');
+}
+
+// TRAVEL BUDGET FINDER
+const DESTINATIONS = [
+  { name:'Bali, Indonesia', flag:'🇮🇩', minPerOrang:800, maxPerOrang:2500, nights:'3-7 malam', type:'budget' },
+  { name:'Bangkok, Thailand', flag:'🇹🇭', minPerOrang:700, maxPerOrang:2000, nights:'3-5 malam', type:'budget' },
+  { name:'Vietnam', flag:'🇻🇳', minPerOrang:800, maxPerOrang:2200, nights:'5-7 malam', type:'budget' },
+  { name:'Singapura', flag:'🇸🇬', minPerOrang:1500, maxPerOrang:3500, nights:'3-5 malam', type:'standard' },
+  { name:'Korea Selatan', flag:'🇰🇷', minPerOrang:2500, maxPerOrang:5000, nights:'5-7 malam', type:'standard' },
+  { name:'Jepun', flag:'🇯🇵', minPerOrang:3000, maxPerOrang:6000, nights:'5-10 malam', type:'standard' },
+  { name:'Turki', flag:'🇹🇷', minPerOrang:3500, maxPerOrang:7000, nights:'7-10 malam', type:'standard' },
+  { name:'United Kingdom', flag:'🇬🇧', minPerOrang:5000, maxPerOrang:10000, nights:'7-10 malam', type:'premium' },
+  { name:'Paris, Perancis', flag:'🇫🇷', minPerOrang:5500, maxPerOrang:12000, nights:'5-10 malam', type:'premium' },
+  { name:'Australia', flag:'🇦🇺', minPerOrang:4500, maxPerOrang:9000, nights:'7-10 malam', type:'premium' },
+  { name:'Maldives', flag:'🇲🇻', minPerOrang:6000, maxPerOrang:15000, nights:'3-7 malam', type:'premium' },
+  { name:'New Zealand', flag:'🇳🇿', minPerOrang:5000, maxPerOrang:11000, nights:'7-10 malam', type:'premium' },
+  { name:'Dubai, UAE', flag:'🇦🇪', minPerOrang:3000, maxPerOrang:8000, nights:'5-7 malam', type:'standard' },
+  { name:'Hong Kong', flag:'🇭🇰', minPerOrang:2000, maxPerOrang:4500, nights:'3-5 malam', type:'standard' },
+  { name:'Cambodia', flag:'🇰🇭', minPerOrang:600, maxPerOrang:1800, nights:'3-5 malam', type:'budget' },
+];
+
+function kalkTravel() {
+  const budget = parseFloat(id('travBudget').value) || 0;
+  const pax = parseInt(id('travPax').value) || 2;
+  const hari = parseInt(id('travHari').value) || 5;
+  const gaya = id('travGaya').value;
+  if (!budget) { id('travResult').classList.remove('show'); return; }
+
+  const perOrang = budget / pax;
+  const perMalam = budget / pax / (hari - 1 || 1);
+
+  id('trav-perorang').textContent = fmtRM(perOrang);
+  id('trav-permalam').textContent = fmtRM(perMalam);
+
+  // Filter destinations
+  let suitable = DESTINATIONS.filter(d => {
+    const budgetOk = perOrang >= d.minPerOrang && perOrang <= d.maxPerOrang * 1.5;
+    const gayaOk = gaya === 'budget' ? d.type === 'budget' :
+                   gaya === 'premium' ? d.type !== 'budget' : true;
+    return budgetOk && gayaOk;
+  }).slice(0, 6);
+
+  if (suitable.length === 0) {
+    suitable = DESTINATIONS.filter(d => perOrang >= d.minPerOrang).slice(0, 4);
+  }
+
+  var destHtml = '';
+  if (suitable.length > 0) {
+    var cards = '';
+    suitable.forEach(function(d) {
+      cards += '<div class="dest-card">' +
+        '<div class="flag">' + d.flag + '</div>' +
+        '<div class="name">' + d.name + '</div>' +
+        '<div class="budget">RM ' + d.minPerOrang.toLocaleString() + ' - ' + d.maxPerOrang.toLocaleString() + ' /orang</div>' +
+        '<div class="nights">⏰ ' + d.nights + '</div>' +
+        '</div>';
+    });
+    destHtml = '<div style="margin-top:12px;border-top:1px solid rgba(201,168,76,0.1);padding-top:12px;">' +
+      '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">✈️ DESTINASI CADANGAN</div>' +
+      '<div class="dest-grid">' + cards + '</div></div>';
+  } else {
+    destHtml = '<div style="color:var(--text3);font-size:12px;margin-top:10px;">Budget mungkin terhad. Cuba tingkatkan budget atau kurangkan pax.</div>';
+  }
+  id('trav-destinations').innerHTML = destHtml;
+  id('travResult').classList.add('show');
+}
+
 // ═══════════════════════════════════════
 // KOMISYEN
 // ═══════════════════════════════════════
@@ -2475,6 +2827,10 @@ window.addEventListener('load', () => {
       <span style="font-size:20px;">📤</span>
       <span style="font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">WA Blast</span>
     </button>
+    <button onclick="showPage('kalkulator',null);setMobNav(this)" class="mob-nav-btn" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;padding:6px 4px;transition:all .2s;">
+      <span style="font-size:20px;">🧮</span>
+      <span style="font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Kalkulator</span>
+    </button>
     <button onclick="showPage('komisyen',null);setMobNav(this)" class="mob-nav-btn" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;padding:6px 4px;transition:all .2s;">
       <span style="font-size:20px;">💰</span>
       <span style="font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Komisyen</span>
@@ -2517,7 +2873,7 @@ showPage = function(name, btn) {
   // Update mobile nav
   const navBtns = document.querySelectorAll('.mob-nav-btn');
   navBtns.forEach(b => b.style.color = 'var(--text3)');
-  const pageMap = {dashboard:0, leads:1, pipeline:2, blast:3, komisyen:4};
+  const pageMap = {dashboard:0, leads:1, pipeline:2, blast:3, komisyen:4, kalkulator:5};
   if (pageMap[name] !== undefined && navBtns[pageMap[name]]) {
     navBtns[pageMap[name]].style.color = 'var(--gold)';
   }
