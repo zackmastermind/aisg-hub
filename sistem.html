@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIS Group — Sistem Pangkat & KPI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0f1c2e; --ink-soft:#56627a; --line:#e7e3d8; --bg:#f4f2ea; --card:#ffffff;
+  --gold:#c8a14a; --gold-deep:#9a7726; --gold-soft:#f7efdb;
+  --ok:#0f6e56; --ok-soft:#e2f4ed; --warn:#9a6a12; --warn-soft:#fbeed8;
+  --r:16px; --shadow:0 1px 2px rgba(15,28,46,.04), 0 10px 30px rgba(15,28,46,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Manrope',sans-serif;color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(1200px 500px at 50% -8%, #fbf8f0 0%, var(--bg) 55%) fixed}
+h1,h2,h3,.ff{font-family:'Sora',sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:18px 15px 70px}
+.hidden{display:none!important}
+
+/* ---------- AUTH SCREENS ---------- */
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(900px 600px at 75% 15%, rgba(200,161,74,.16), transparent 60%),
+             radial-gradient(700px 500px at 15% 90%, rgba(28,48,80,.18), transparent 55%),
+             linear-gradient(160deg,#0c1626,#15243c 60%,#0c1626)}
+.auth-card{background:var(--card);border-radius:24px;box-shadow:0 30px 70px rgba(0,0,0,.4);width:100%;max-width:400px;
+  padding:36px 30px;animation:pop .6s cubic-bezier(.22,1,.36,1)}
+.auth-card.center{text-align:center}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+.logo{width:62px;height:62px;border-radius:18px;background:linear-gradient(145deg,#1c3050,#0f1c2e);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-family:'Sora';font-weight:800;font-size:23px;margin:0 auto 18px;
+  letter-spacing:1px;box-shadow:0 8px 22px rgba(15,28,46,.35), inset 0 1px 0 rgba(255,255,255,.12);position:relative}
+.logo::after{content:'';position:absolute;inset:0;border-radius:18px;border:1px solid rgba(200,161,74,.4)}
+.tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-deep);font-weight:700;font-family:'Sora';text-align:center}
+.auth-card h1{font-size:22px;font-weight:700;margin:8px 0 4px;text-align:center}
+.lead{color:var(--ink-soft);font-size:14px;margin-bottom:24px;text-align:center}
+label{display:block;text-align:left;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin:0 0 7px;letter-spacing:.2px}
+select,input{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font-family:inherit;font-size:15px;
+  background:#fbfaf6;color:var(--ink);margin-bottom:16px;transition:border-color .2s}
+select{cursor:pointer}
+select:focus,input:focus{outline:none;border-color:var(--gold)}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;color:#fff;font-family:'Sora';font-weight:700;font-size:15px;cursor:pointer;
+  background:linear-gradient(145deg,#1c3050,#0f1c2e);box-shadow:0 8px 20px rgba(15,28,46,.28);transition:transform .15s, box-shadow .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(15,28,46,.34)}
+.btn:active{transform:translateY(0)}
+.btn.gold{background:linear-gradient(145deg,var(--gold),var(--gold-deep));box-shadow:0 8px 20px rgba(200,161,74,.3)}
+.link{display:inline-block;margin-top:18px;color:var(--ink-soft);font-size:13.5px;font-weight:600;cursor:pointer;text-align:center;width:100%}
+.link:hover{color:var(--gold-deep)}
+.hint{font-size:11.5px;color:var(--ink-soft);margin-top:18px;line-height:1.5;text-align:center}
+.tick{width:64px;height:64px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:flex;align-items:center;justify-content:center;
+  font-size:34px;margin:0 auto 18px}
+.pend-tag{display:inline-block;background:var(--warn-soft);color:var(--warn);font-weight:700;font-size:12px;padding:5px 13px;border-radius:20px;margin:8px 0 4px}
+
+/* ---------- HERO + content anim ---------- */
+#content>*{opacity:0;transform:translateY(16px);animation:rise .6s cubic-bezier(.22,1,.36,1) forwards}
+#content>*:nth-child(1){animation-delay:.04s}
+#content>*:nth-child(2){animation-delay:.13s}
+#content>*:nth-child(3){animation-delay:.22s}
+#content>*:nth-child(4){animation-delay:.31s}
+@keyframes rise{to{opacity:1;transform:none}}
+.hero{position:relative;overflow:hidden;border-radius:22px;padding:22px 22px 26px;margin-bottom:18px;color:#fff;
+  background:linear-gradient(150deg,#16243c 0%,#0f1c2e 70%);box-shadow:0 18px 44px rgba(15,28,46,.28)}
+.hero .glow{position:absolute;width:340px;height:340px;border-radius:50%;top:-160px;right:-120px;
+  background:radial-gradient(circle, rgba(200,161,74,.38), transparent 65%);pointer-events:none}
+.hero .glow2{position:absolute;width:260px;height:260px;border-radius:50%;bottom:-150px;left:-90px;
+  background:radial-gradient(circle, rgba(80,130,200,.22), transparent 65%);pointer-events:none}
+.hero-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.who{display:flex;align-items:center;gap:12px;min-width:0}
+.avatar{width:46px;height:46px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Sora';font-weight:700;color:#fff;font-size:16px;box-shadow:0 6px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.2)}
+.who .nm{font-weight:700;font-size:16px;font-family:'Sora';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;font-family:'Sora';margin-top:4px}
+.dot{width:6px;height:6px;border-radius:50%}
+.logout{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#e7ecf4;padding:8px 14px;border-radius:11px;
+  font-family:'Manrope';font-weight:600;font-size:13px;cursor:pointer;transition:background .2s}
+.logout:hover{background:rgba(255,255,255,.14)}
+.hf-label{font-size:12.5px;color:#a9b4c6;font-weight:600;letter-spacing:.3px;margin-bottom:4px}
+.hf-num{font-family:'Sora';font-weight:800;font-size:42px;line-height:1;letter-spacing:-.5px;display:flex;align-items:baseline;gap:4px}
+.hf-num .cur{font-size:19px;font-weight:600;color:var(--gold);align-self:flex-start;margin-top:3px}
+.hf-chip{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:7px 13px;border-radius:11px;font-size:13px;font-weight:600;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+.hf-chip.ok{background:rgba(34,170,120,.18);border-color:rgba(34,170,120,.4);color:#7fe3c0}
+.hf-chip.warn{background:rgba(200,161,74,.16);border-color:rgba(200,161,74,.4);color:#f0d18a}
+
+/* ---------- CARDS ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h2{font-size:12.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);
+  margin-bottom:18px;display:flex;align-items:center;gap:9px}
+.card h2::before{content:'';width:16px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-deep))}
+.kpi-flex{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.ring{position:relative;width:124px;height:124px;flex-shrink:0}
+.ring svg{transform:rotate(-90deg)}
+.ring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .pct b{font-family:'Sora';font-size:28px;font-weight:800;line-height:1}
+.ring .pct small{font-size:10.5px;color:var(--ink-soft);font-weight:600;letter-spacing:.3px;margin-top:2px}
+.kpi-info{flex:1;min-width:200px}
+
+/* KPI modules (2+2+1) */
+.kmod{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.kmod:last-child{border:0}
+.kmod .nm2{font-weight:600;font-size:14px;width:104px}
+.dots{display:flex;gap:5px;flex:1}
+.d{width:11px;height:11px;border-radius:50%;background:var(--line)}
+.d.on{background:var(--gold)}
+.kmod.met .d.on{background:var(--ok)}
+.kmod .val{font-family:'Sora';font-weight:700;font-size:13.5px;width:54px;text-align:right}
+.kmod.met .val{color:var(--ok)}
+.status{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:9px}
+.status.ok{background:var(--ok-soft);color:var(--ok)}
+.status.warn{background:var(--warn-soft);color:var(--warn)}
+
+/* Income */
+.brk-line{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.brk-line:last-child{border:0}
+.brk-line .t{display:flex;align-items:center;gap:9px}
+.brk-line .amt{font-family:'Sora';font-weight:700;font-size:15px}
+.locked{opacity:.5}
+.tag-mini{font-size:10.5px;background:var(--gold-soft);color:var(--gold-deep);padding:2px 8px;border-radius:7px;font-weight:700}
+.lock{font-size:10.5px;background:var(--line);color:var(--ink-soft);padding:2px 8px;border-radius:7px;font-weight:700}
+.unlocked .amt{color:var(--ok)}
+.disclaimer{font-size:11.5px;color:var(--gold-deep);background:var(--gold-soft);border-radius:11px;padding:12px 14px;margin-top:14px;line-height:1.5;font-weight:500}
+
+/* Stats */
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{flex:1;min-width:90px;background:#fbfaf6;border:1px solid var(--line);border-radius:13px;padding:16px 14px}
+.stat b{font-family:'Sora';font-size:26px;font-weight:800;display:block;line-height:1}
+.stat span{font-size:12px;color:var(--ink-soft);font-weight:600}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;font-weight:700;font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);padding:0 10px 12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:14px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border:0}
+.tbl .name{font-weight:700}
+.tbl .mod{font-size:11.5px;color:var(--ink-soft);font-weight:500}
+.pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.section-note{font-size:13px;color:var(--ink-soft);margin:-8px 0 16px}
+.tot-row{display:flex;justify-content:space-between;padding:14px 12px;background:#fbfaf6;border-radius:12px;margin-top:12px;font-size:14.5px;font-weight:700;font-family:'Sora'}
+h2.collap{cursor:pointer;justify-content:space-between;user-select:none}
+h2.collap .chev{transition:transform .25s;color:var(--ink-soft);font-size:14px}
+.card.closed .cbody{display:none}
+.card.closed h2.collap .chev{transform:rotate(-90deg)}
+
+/* pending approval */
+.pend{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid var(--warn-soft);
+  background:#fffdf6;border-radius:13px;margin-bottom:10px;flex-wrap:wrap}
+.pend .pi{min-width:140px}
+.pend .pi .name{font-weight:700}
+.pend .pi .sub{font-size:12px;color:var(--ink-soft)}
+.pend .acts{display:flex;gap:8px}
+.mini-btn{border:none;padding:8px 14px;border-radius:10px;font-family:'Sora';font-weight:700;font-size:12.5px;cursor:pointer}
+.mini-btn.ok{background:var(--ok);color:#fff}
+.mini-btn.no{background:transparent;border:1px solid var(--line);color:var(--ink-soft)}
+.mini-btn.ok:hover{filter:brightness(1.08)} .mini-btn.no:hover{border-color:var(--ink-soft);color:var(--ink)}
+.empty{text-align:center;color:var(--ink-soft);font-size:13.5px;padding:18px 0}
+@media(max-width:520px){ .hf-num{font-size:36px} .tbl .hide-sm{display:none} }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login" class="auth">
+  <div class="auth-card center">
+    <div class="logo">AIS</div>
+    <div class="tag">Achiever · Infinite · Success</div>
+    <h1>Sistem Pangkat &amp; KPI</h1>
+    <div class="lead">Log masuk untuk lihat pangkat, KPI &amp; pendapatan</div>
+    <label for="acc">Pilih akaun</label>
+    <select id="acc"></select>
+    <button class="btn" onclick="login()">Log Masuk</button>
+    <span class="link" onclick="showRegister()">Belum ada akaun? Daftar sebagai ejen baru →</span>
+    <p class="hint">Prototaip demo — paparan berubah ikut pangkat.</p>
+  </div>
+</div>
+
+<!-- ============ REGISTER ============ -->
+<div id="register" class="auth hidden">
+  <div class="auth-card">
+    <div class="logo">AIS</div>
+    <h1>Pendaftaran Ejen</h1>
+    <div class="lead">Lengkapkan maklumat di bawah</div>
+    <label>Nama penuh</label><input id="rNama" placeholder="Cth: Ahmad bin Ali">
+    <label>No. telefon</label><input id="rTel" placeholder="Cth: 012-3456789">
+    <label>Email</label><input id="rEmail" placeholder="email@contoh.com">
+    <label>Modul utama (pilihan)</label>
+    <select id="rModul"><option>Property</option><option>Loan</option><option>Travel</option></select>
+    <label>Team Leader (upline)</label>
+    <select id="rTL"></select>
+    <button class="btn gold" onclick="submitDaftar()">Hantar Pendaftaran</button>
+    <span class="link" onclick="showLogin()">← Kembali ke log masuk</span>
+    <p class="hint">Pangkat ditetapkan automatik sebagai <b>Agen</b>.<br>Akaun aktif selepas bayaran disahkan &amp; diluluskan.</p>
+  </div>
+</div>
+
+<!-- ============ SUCCESS ============ -->
+<div id="done" class="auth hidden">
+  <div class="auth-card center">
+    <div class="tick">✓</div>
+    <h1>Pendaftaran diterima</h1>
+    <div class="pend-tag">Status: Menunggu kelulusan</div>
+    <div class="lead" id="doneMsg" style="margin-top:10px"></div>
+    <button class="btn" onclick="showLogin()">Kembali ke log masuk</button>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden"><div class="wrap"><div id="content"></div></div></div>
+
+<script>
+/* =====================================================================
+   DATA & TETAPAN — tukar nombor ikut sebenar
+   KPI permulaan = 2 Property + 2 Loan + 1 Travel (5 deal/bulan)
+   ===================================================================== */
+const KPI_TARGET = { Property:2, Loan:2, Travel:1 };       // <<< KPI 2+2+1
+const KOM        = { Property:800, Loan:500, Travel:300 }; // komisen purata setiap deal (placeholder)
+const BONUS_KPI  = 1000;                                    // bonus bila 2+2+1 dicapai (placeholder)
+const MODULES = ['Property','Loan','Travel'];
+
+const AGEN = {
+  aiman:{ nama:'Aiman Yusof', tl:'faiz', deals:{Property:2,Loan:1,Travel:0} },
+  nadia:{ nama:'Nadia Rahim', tl:'faiz', deals:{Property:2,Loan:1,Travel:2} },
+  hafiz:{ nama:'Hafiz Zaki',  tl:'faiz', deals:{Property:1,Loan:2,Travel:1} },
+  iman :{ nama:'Iman Daud',   tl:'faiz', deals:{Property:2,Loan:2,Travel:1} },
+};
+const TL = { faiz:{ nama:'Faiz Karim', deals:{Property:2,Loan:0,Travel:3}, overrideRate:0.10 } };
+const ACCOUNTS = [
+  { id:'zack',  nama:'Zack (Mastermind)',  pangkat:'Mastermind' },
+  { id:'sara',  nama:'Sara (Admin)',       pangkat:'Admin' },
+  { id:'faiz',  nama:'Faiz (Team Leader)', pangkat:'Team Leader' },
+  { id:'aiman', nama:'Aiman (Agen)',       pangkat:'Agen' },
+  { id:'nadia', nama:'Nadia (Agen)',       pangkat:'Agen' },
+];
+let PENDING = [
+  { id:'p1', nama:'Syafiq Anuar', telefon:'013-7788990', modul:'Property', tl:'faiz' },
+];
+const TIER = {
+  'Mastermind' :{ c:'#7a5cc4', chip:'rgba(122,92,196,.2)', bg:'#efeaf9', fg:'#5b41a0' },
+  'Admin'      :{ c:'#8a8780', chip:'rgba(138,135,128,.22)', bg:'#eeede9', fg:'#5f5e5a' },
+  'Team Leader':{ c:'#1d9e75', chip:'rgba(29,158,117,.22)', bg:'var(--ok-soft)', fg:'#0f6e56' },
+  'Agen'       :{ c:'#d4632b', chip:'rgba(212,99,43,.22)', bg:'#faece7', fg:'#a8431a' },
+};
+
+/* ---------- util ---------- */
+const rm = n => Number(Math.round(n)).toLocaleString('en-MY');
+const initials = s => s.trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+
+function stat(deals){
+  const p=deals.Property||0, l=deals.Loan||0, t=deals.Travel||0, lt=l+t;
+  const pMet=p>=2, ltMet=lt>=3;            // Property wajib 2; baki 3 (Loan+Travel) bebas
+  const cukup=pMet&&ltMet;
+  const capped=Math.min(p,2)+Math.min(lt,3); // daripada 5
+  const komisen=p*KOM.Property+l*KOM.Loan+t*KOM.Travel;
+  const bonus=cukup?BONUS_KPI:0;
+  return {p,l,t,lt,pMet,ltMet,cukup,pct:Math.round(capped/5*100),komisen,bonus,jumlah:komisen+bonus,total:p+l+t,totalTgt:5};
+}
+const teamOf = tlkey => Object.keys(AGEN).filter(k=>AGEN[k].tl===tlkey);
+
+/* ---------- screens ---------- */
+function show(id){ ['login','register','done','app'].forEach(s=>document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+function showLogin(){ show('login'); }
+function showRegister(){ fillTLOptions(); show('register'); }
+function fillAccounts(){ document.getElementById('acc').innerHTML = ACCOUNTS.map(a=>`<option value="${a.id}">${a.nama}</option>`).join(''); }
+function fillTLOptions(){ document.getElementById('rTL').innerHTML = Object.entries(TL).map(([k,t])=>`<option value="${k}">${t.nama}</option>`).join(''); }
+function login(){ render(document.getElementById('acc').value); }
+function logout(){ show('login'); }
+
+/* ---------- register ---------- */
+function submitDaftar(){
+  const nama=document.getElementById('rNama').value.trim();
+  const tel=document.getElementById('rTel').value.trim();
+  if(!nama||!tel){ alert('Sila isi nama & no. telefon.'); return; }
+  const modul=document.getElementById('rModul').value;
+  const tl=document.getElementById('rTL').value;
+  PENDING.push({id:'p'+Date.now(),nama,telefon:tel,modul,tl});
+  document.getElementById('doneMsg').innerHTML = `Terima kasih <b>${nama}</b>. Pendaftaran anda telah dihantar kepada admin untuk pengesahan bayaran &amp; kelulusan.`;
+  ['rNama','rTel','rEmail'].forEach(i=>document.getElementById(i).value='');
+  show('done');
+}
+function lulus(pid){
+  const p=PENDING.find(x=>x.id===pid); if(!p)return;
+  let key=p.nama.split(' ')[0].toLowerCase().replace(/[^a-z]/g,'')+Math.floor(Math.random()*900+100);
+  AGEN[key]={nama:p.nama,tl:p.tl,modulUtama:p.modul,deals:{Property:0,Loan:0,Travel:0}};
+  PENDING=PENDING.filter(x=>x.id!==pid);
+  render('sara');
+}
+function tolak(pid){ PENDING=PENDING.filter(x=>x.id!==pid); render('sara'); }
+
+/* ---------- hero ---------- */
+function hero(o){
+  const t=TIER[o.pangkat];
+  return `<div class="hero"><div class="glow"></div><div class="glow2"></div>
+    <div class="hero-top"><div class="who">
+      <div class="avatar" style="background:linear-gradient(145deg,${t.c},${t.c}cc)">${initials(o.nama)}</div>
+      <div><div class="nm">${o.nama}</div>
+      <div class="badge" style="background:${t.chip};color:#fff"><span class="dot" style="background:${t.c}"></span>${o.pangkat}</div></div>
+    </div><button class="logout" onclick="logout()">Keluar</button></div>
+    <div class="hero-fig"><div class="hf-label">${o.figLabel}</div>
+      <div class="hf-num">${o.prefix?`<span class="cur">${o.prefix}</span>`:''}<span data-count="${o.figNum}">0</span></div>
+      ${o.chip?`<div class="hf-chip ${o.chipState||''}">${o.chip}</div>`:''}</div></div>`;
+}
+function ring(pct,colour){
+  const r=52,c=2*Math.PI*r,off=c*(1-pct/100);
+  return `<div class="ring"><svg width="124" height="124">
+    <circle cx="62" cy="62" r="${r}" fill="none" stroke="var(--line)" stroke-width="12"/>
+    <circle class="ring-prog" cx="62" cy="62" r="${r}" fill="none" stroke="${colour}" stroke-width="12" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${c}" data-off="${off}" style="transition:stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1)"/>
+  </svg><div class="pct"><b data-count="${pct}">0</b><small>% KPI</small></div></div>`;
+}
+function dots(done,tgt){
+  let s=''; for(let i=0;i<tgt;i++) s+=`<span class="d ${i<done?'on':''}"></span>`; return `<span class="dots">${s}</span>`;
+}
+function kpiBreakdown(deals){
+  const p=deals.Property||0, l=deals.Loan||0, t=deals.Travel||0, lt=l+t;
+  const pMet=p>=2, ltMet=lt>=3;
+  return `<div class="kmod ${pMet?'met':''}"><span class="nm2">Property</span>${dots(Math.min(p,2),2)}<span class="val">${p}/2${pMet?' ✓':''}</span></div>`
+       + `<div class="kmod ${ltMet?'met':''}"><span class="nm2">Loan + Travel</span>${dots(Math.min(lt,3),3)}<span class="val">${lt}/3${ltMet?' ✓':''}</span></div>`;
+}
+
+/* ---------- AGEN ---------- */
+function viewAgen(key){
+  const a=AGEN[key], s=stat(a.deals), col=s.cukup?'#1d9e75':'#d4632b';
+  const chip = s.cukup ? `✓ KPI tercapai` : !s.pMet ? `Property ${s.p}/2 — wajib dulu` : `Loan+Travel ${s.lt}/3 lagi`;
+  return hero({nama:a.nama,pangkat:'Agen',figLabel:'Pendapatan bulan ini',prefix:'RM',figNum:Math.round(s.jumlah),chip,chipState:s.cukup?'ok':'warn'})
+  + `<div class="card"><h2>KPI 2+2+1 bulan ini</h2>
+      <p class="section-note">Property wajib 2 deal. Baki 3 deal bebas — Loan atau Travel.</p>
+      <div class="kpi-flex">${ring(s.pct,col)}<div class="kpi-info">${kpiBreakdown(a.deals)}
+        ${s.cukup?`<div class="status ok">✓ KPI 2+2+1 tercapai — bonus dibuka</div>`:`<div class="status warn">Lengkapkan baki deal untuk buka bonus</div>`}
+      </div></div></div>
+    <div class="card"><h2>Pecahan pendapatan</h2>
+      ${MODULES.map(m=>{const d=a.deals[m]||0;return `<div class="brk-line ${d?'':'locked'}"><div class="t">Komisen ${m} <span class="tag-mini">${d} × RM${rm(KOM[m])}</span></div><div class="amt">RM${rm(d*KOM[m])}</div></div>`;}).join('')}
+      <div class="brk-line ${s.cukup?'unlocked':'locked'}"><div class="t">Bonus KPI ${s.cukup?'✓':'<span class="lock">terkunci</span>'}</div><div class="amt">${s.cukup?'+ RM'+rm(s.bonus):'RM0'}</div></div>
+      <div class="disclaimer">Pendapatan dikira dari deal sebenar &amp; pencapaian KPI. Tertakluk kepada usaha — bukan jaminan pendapatan.</div>
+    </div>`;
+}
+
+/* ---------- TEAM LEADER ---------- */
+function viewTL(key){
+  const t=TL[key], own=stat(t.deals), team=teamOf(key);
+  const teamKomisen=team.reduce((sum,k)=>sum+stat(AGEN[k].deals).komisen,0);
+  const cukupCount=team.filter(k=>stat(AGEN[k].deals).cukup).length;
+  const override=teamKomisen*t.overrideRate;
+  const income=own.komisen+(own.cukup?own.bonus:0)+override;
+  const chip=`${cukupCount}/${team.length} agen cukup KPI`;
+  const rows=team.map(k=>{const a=AGEN[k],ss=stat(a.deals);
+    return `<tr><td><div class="name">${a.nama}</div><div class="mod">${ss.total}/${ss.totalTgt} deal</div></td>
+      <td class="hide-sm">${a.deals.Property}+${a.deals.Loan}+${a.deals.Travel}</td>
+      <td><span class="pill ${ss.cukup?'ok':'warn'}">${ss.cukup?'Cukup':ss.pct+'%'}</span></td></tr>`;}).join('');
+  return hero({nama:t.nama,pangkat:'Team Leader',figLabel:'Pendapatan bulan ini',prefix:'RM',figNum:Math.round(income),chip,chipState:cukupCount>=team.length/2?'ok':'warn'})
+  + `<div class="card"><h2>KPI peribadi (2+2+1)</h2>
+      <p class="section-note">Property wajib 2 deal. Baki 3 deal bebas — Loan atau Travel.</p>
+      <div class="kpi-flex">${ring(own.pct,own.cukup?'#1d9e75':'#1d9e75')}<div class="kpi-info">${kpiBreakdown(t.deals)}</div></div></div>
+    <div class="card"><h2>Pecahan pendapatan</h2>
+      <div class="brk-line"><div class="t">Komisen jualan sendiri</div><div class="amt">RM${rm(own.komisen)}</div></div>
+      <div class="brk-line ${own.cukup?'unlocked':'locked'}"><div class="t">Bonus KPI sendiri ${own.cukup?'✓':'<span class="lock">terkunci</span>'}</div><div class="amt">${own.cukup?'+ RM'+rm(own.bonus):'RM0'}</div></div>
+      <div class="brk-line"><div class="t">Override pasukan <span class="tag-mini">${t.overrideRate*100}%</span></div><div class="amt">+ RM${rm(override)}</div></div>
+      <div class="disclaimer">Override dikira dari komisen pasukan. Tertakluk kepada usaha — bukan jaminan pendapatan.</div></div>
+    <div class="card"><h2>Pasukan anda</h2>
+      <p class="section-note">${cukupCount} daripada ${team.length} agen telah cukup KPI 2+2+1 bulan ini.</p>
+      <table class="tbl"><thead><tr><th>Agen</th><th class="hide-sm">P+L+T</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="tot-row"><span>Jumlah komisen pasukan</span><span>RM${rm(teamKomisen)}</span></div></div>`;
+}
+
+/* ---------- ADMIN ---------- */
+function viewAdmin(){
+  const pend = PENDING.length
+    ? PENDING.map(p=>`<div class="pend"><div class="pi"><div class="name">${p.nama}</div>
+        <div class="sub">${p.telefon} · ${p.modul} · TL: ${TL[p.tl]?TL[p.tl].nama:'-'}</div></div>
+        <div class="acts"><button class="mini-btn ok" onclick="lulus('${p.id}')">Lulus</button>
+        <button class="mini-btn no" onclick="tolak('${p.id}')">Tolak</button></div></div>`).join('')
+    : `<div class="empty">Tiada pendaftaran menunggu kelulusan.</div>`;
+  const rows=Object.entries(AGEN).map(([k,a])=>{const ss=stat(a.deals);
+    return `<tr><td><div class="name">${a.nama}</div><div class="mod">Agen · TL ${TL[a.tl]?TL[a.tl].nama:'-'}</div></td>
+      <td><span class="pill ${ss.cukup?'ok':'warn'}">${ss.cukup?'Cukup KPI':ss.pct+'%'}</span></td>
+      <td class="hide-sm"><span class="pill ok">Aktif</span></td></tr>`;}).join('');
+  return hero({nama:'Sara',pangkat:'Admin',figLabel:'Menunggu kelulusan',figNum:PENDING.length,chip:'Peranan sokongan — selari, tiada komisen peribadi'})
+  + `<div class="card"><h2>Pendaftaran menunggu kelulusan</h2>
+      <p class="section-note">Sahkan bayaran sebelum lulus. Selepas lulus, pangkat = Agen &amp; akaun aktif.</p>${pend}</div>
+    <div class="card"><h2>Pengguna aktif</h2>
+      <table class="tbl"><thead><tr><th>Pengguna</th><th>Status KPI</th><th class="hide-sm">Keaktifan</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+/* ---------- MASTERMIND ---------- */
+function viewMastermind(){
+  const keys=Object.keys(AGEN); let totDeal=0,cukup=0,komAgen=0,bonAgen=0;
+  const rows=keys.map(k=>{const a=AGEN[k],ss=stat(a.deals);totDeal+=ss.total;if(ss.cukup)cukup++;komAgen+=ss.komisen;bonAgen+=ss.bonus;
+    return `<tr><td><div class="name">${a.nama}</div><div class="mod">Agen · TL ${TL[a.tl]?TL[a.tl].nama:'-'}</div></td>
+      <td class="hide-sm">${a.deals.Property}+${a.deals.Loan}+${a.deals.Travel}</td>
+      <td><span class="pill ${ss.cukup?'ok':'warn'}">${ss.cukup?'Cukup':ss.pct+'%'}</span></td></tr>`;}).join('');
+  let komTL=0,bonTL=0,ovTL=0;
+  Object.keys(TL).forEach(tk=>{const t=TL[tk],own=stat(t.deals);
+    const teamKom=teamOf(tk).reduce((s,k)=>s+stat(AGEN[k].deals).komisen,0);
+    komTL+=own.komisen; bonTL+=own.cukup?own.bonus:0; ovTL+=teamKom*t.overrideRate;});
+  const bonus=bonAgen+bonTL, total=komAgen+komTL+ovTL+bonus;
+  return hero({nama:'Zack',pangkat:'Mastermind',figLabel:'Jumlah income terkumpul — syarikat',prefix:'RM',figNum:Math.round(total),
+    chip:`${cukup}/${keys.length} agen cukup KPI · ${totDeal} deal`,chipState:'ok'})
+  + `<div class="card"><h2>Ringkasan organisasi</h2><div class="stats">
+      <div class="stat"><b>${Object.keys(TL).length}</b><span>Team Leader</span></div>
+      <div class="stat"><b>${keys.length}</b><span>Agen aktif</span></div>
+      <div class="stat"><b>${PENDING.length}</b><span>Menunggu lulus</span></div>
+      <div class="stat"><b>${cukup}/${keys.length}</b><span>Cukup KPI</span></div></div></div>
+    <div class="card"><h2 class="collap" onclick="toggleCard(this)">Income terkumpul syarikat <span class="chev">▾</span></h2>
+      <div class="cbody">
+        <div class="brk-line"><div class="t">Komisen agen</div><div class="amt">RM${rm(komAgen)}</div></div>
+        <div class="brk-line"><div class="t">Komisen Team Leader</div><div class="amt">RM${rm(komTL)}</div></div>
+        <div class="brk-line"><div class="t">Override Team Leader</div><div class="amt">RM${rm(ovTL)}</div></div>
+        <div class="brk-line"><div class="t">Bonus KPI dibayar</div><div class="amt">RM${rm(bonus)}</div></div>
+        <div class="tot-row"><span>Jumlah keseluruhan</span><span>RM${rm(total)}</span></div>
+      </div></div>
+    <div class="card"><h2 class="collap" onclick="toggleCard(this)">Prestasi agen — KPI 2+2+1 <span class="chev">▾</span></h2>
+      <div class="cbody">
+        <table class="tbl"><thead><tr><th>Agen</th><th class="hide-sm">P+L+T</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="tot-row"><span>Jumlah deal keseluruhan</span><span>${totDeal} deal</span></div>
+      </div></div>`;
+}
+
+/* ---------- anim + router ---------- */
+function animate(){
+  document.querySelectorAll('[data-count]').forEach(el=>{
+    const target=+el.getAttribute('data-count'),dur=950,start=performance.now();
+    (function tick(now){const p=Math.min(1,(now-start)/dur);const v=Math.round(target*(1-Math.pow(1-p,3)));
+      el.textContent=v.toLocaleString('en-MY');if(p<1)requestAnimationFrame(tick);})(start);});
+  setTimeout(()=>document.querySelectorAll('.ring-prog').forEach(c=>c.style.strokeDashoffset=c.getAttribute('data-off')),80);
+}
+function toggleCard(h){ h.closest('.card').classList.toggle('closed'); }
+function render(id){
+  const acc=ACCOUNTS.find(a=>a.id===id); show('app');
+  let html = acc.pangkat==='Mastermind'?viewMastermind()
+           : acc.pangkat==='Admin'?viewAdmin()
+           : acc.pangkat==='Team Leader'?viewTL(id):viewAgen(id);
+  document.getElementById('content').innerHTML=html; window.scrollTo(0,0); animate();
+}
+fillAccounts();
+</script>
+</body>
+</html>
