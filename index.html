@@ -792,6 +792,11 @@ tbody td { padding:15px 16px; font-size:13px; vertical-align:middle; }
       <p>Urus pakej percutian, tempahan pelanggan & itinerary perjalanan.</p>
     </div>
   </div>
+  <div style="margin-top:18px;margin-bottom:0;">
+    <button onclick="openKpi()" style="background:linear-gradient(135deg,rgba(43,127,224,0.18),rgba(43,127,224,0.05));border:1px solid var(--blue-border2);color:var(--blue-light);padding:12px 32px;border-radius:24px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;transition:all .2s;" onmouseover="this.style.background='rgba(43,127,224,0.28)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(43,127,224,0.18),rgba(43,127,224,0.05))'">
+      📊 Pangkat &amp; KPI
+    </button>
+  </div>
   <div id="adminBtn" style="margin-top:20px;margin-bottom:0;">
     <button onclick="enterAdmin()" style="background:linear-gradient(135deg,rgba(43,127,224,0.15),rgba(224,48,48,0.1));border:1px solid rgba(43,127,224,0.4);color:#5AA3FF;padding:12px 32px;border-radius:24px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;transition:all .2s;" onmouseover="this.style.background='rgba(43,127,224,0.2)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(43,127,224,0.15),rgba(224,48,48,0.1))'">
       ⚙️ Admin Panel
@@ -799,6 +804,20 @@ tbody td { padding:15px 16px; font-size:13px; vertical-align:middle; }
   </div>
   <div class="hub-logout">
     <button class="btn-logout" onclick="doLogout()">← Log Keluar</button>
+  </div>
+</div>
+
+<!-- ══ PANGKAT & KPI SCREEN ══ -->
+<div id="kpiScreen" style="display:none;align-items:flex-start;justify-content:center;flex-direction:column;min-height:100vh;padding:34px 18px;position:relative;z-index:1;">
+  <div style="width:100%;max-width:720px;margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:26px;">
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--text);letter-spacing:.5px;">Pangkat &amp; KPI</div>
+        <div id="kpiWho" style="font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-top:5px;"></div>
+      </div>
+      <button onclick="showHub()" style="flex:0 0 auto;background:transparent;border:1px solid var(--blue-border);color:var(--blue-light);padding:9px 18px;border-radius:20px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">← Hub</button>
+    </div>
+    <div id="kpiBody"></div>
   </div>
 </div>
 
@@ -1708,7 +1727,7 @@ function closeModal() {
 // HELPERS
 // ═══════════════════════════════════════
 function show(screenId) {
-  ['setupScreen','loginScreen','hubScreen','appScreen','adminScreen'].forEach(s => {
+  ['setupScreen','loginScreen','hubScreen','appScreen','adminScreen','kpiScreen'].forEach(s => {
     const el = id(s);
     if (!el) return;
     if (s === screenId) {
@@ -1757,6 +1776,159 @@ let allUsers = [], activityLog = [], editingUserId = null;
 
 const ROLES = { admin:'👑 Admin', leader:'⭐ Leader', agen_senior:'🥇 Agen Senior', agen_baru:'🟡 Agen Baru' };
 const ROLE_COLORS = { admin:'#E03030', leader:'#7B3FE0', agen_senior:'#2B7FE0', agen_baru:'#2BC97A' };
+
+// ═══════════════════════════════════════
+// PANGKAT & KPI  (sistem pangkat + KPI 2+2+1)
+// ═══════════════════════════════════════
+// >>> KADAR & BONUS — Wan boleh kemaskini di sini bila dapat nombor sebenar <<<
+const BONUS_KPI = 1000;        // RM bonus bila cukup KPI sebulan
+const KPI_PROPERTY_MIN = 2;    // wajib: minimum deal property
+const KPI_FLEX_MIN     = 3;    // fleksibel: minimum (loan + travel)
+
+function kpiInThisMonth(r){
+  const now = new Date();
+  let d = null;
+  if (r.createdAt && typeof r.createdAt.toDate === 'function') { try { d = r.createdAt.toDate(); } catch(e){} }
+  if (!d && r.date) {
+    const p = String(r.date).split('/');           // format ms-MY: d/m/yyyy
+    if (p.length === 3) d = new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+  }
+  if (!d || isNaN(d.getTime())) return true;        // kalau tak pasti, kira sahaja
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
+
+async function openKpi(){
+  show('kpiScreen');
+  const body = id('kpiBody');
+  body.innerHTML = '<div style="text-align:center;padding:60px 0;color:var(--text2);font-size:13px;letter-spacing:1px;">Memuatkan data…</div>';
+  if (!db) { body.innerHTML = '<div style="color:var(--red);padding:30px;">Pangkalan data tidak bersambung.</div>'; return; }
+
+  const { collection, getDocs } = window._fbModules;
+  const email   = currentUser ? (currentUser.email||'') : '';
+  const nameMap = { 'zack88.max@gmail.com':'Zack.Mastermind' };
+
+  // 1) Cari pangkat & nama dari koleksi users
+  let role = 'agen', uname = nameMap[email] || email.split('@')[0] || 'Pengguna';
+  try {
+    const usnap = await getDocs(collection(db,'users'));
+    usnap.forEach(d => {
+      const u = d.data();
+      if ((u.email||'').toLowerCase() === email.toLowerCase()) {
+        if (u.role) role = u.role;
+        if (u.name) uname = u.name;
+      }
+    });
+  } catch(e){}
+
+  const isCompany = (role === 'admin') || (email === 'zack88.max@gmail.com');
+
+  // 2) Ambil rekod komisyen bulan semasa
+  let recs = [];
+  try { const ks = await getDocs(collection(db,'komisyen_records')); ks.forEach(d => recs.push(d.data())); } catch(e){}
+  const month = recs.filter(kpiInThisMonth);
+
+  const roleLabel = isCompany ? 'Mastermind / Admin' : (role==='leader' ? 'Team Leader' : (role==='agen_senior' ? 'Agen Senior' : 'Agen'));
+  id('kpiWho').textContent = uname + ' · ' + roleLabel;
+
+  if (isCompany) body.innerHTML = kpiCompanyHTML(month);
+  else           body.innerHTML = kpiAgentHTML(month, uname, email, nameMap, roleLabel);
+}
+
+function kpiAgentHTML(month, uname, email, nameMap, roleLabel){
+  const myNames = [uname, nameMap[email], (email||'').split('@')[0]]
+    .filter(Boolean).map(s => String(s).toLowerCase());
+  const mine = month.filter(r => myNames.includes(String(r.agent||'').toLowerCase()));
+
+  const prop   = mine.filter(r => r.biz==='property').length;
+  const loan   = mine.filter(r => r.biz==='loan').length;
+  const travel = mine.filter(r => r.biz==='travel').length;
+  const flex   = loan + travel;
+  const cukup  = prop >= KPI_PROPERTY_MIN && flex >= KPI_FLEX_MIN;
+
+  const komisyen = mine.reduce((s,r) => s + parseFloat(r.rmAgen||0), 0);
+  const bonus    = cukup ? BONUS_KPI : 0;
+  const income   = komisyen + bonus;
+
+  const propPct = Math.min(100, (prop/KPI_PROPERTY_MIN)*100);
+  const flexPct = Math.min(100, (flex/KPI_FLEX_MIN)*100);
+  const bar = (pct,ok) => `<div style="height:9px;border-radius:6px;background:rgba(43,127,224,0.12);overflow:hidden;"><div style="height:100%;width:${pct}%;border-radius:6px;background:${ok?'linear-gradient(90deg,#2B7FE0,#5AA3FF)':'linear-gradient(90deg,#E03030,#ff6a6a)'};transition:width .5s;"></div></div>`;
+
+  return `
+  <!-- Pendapatan -->
+  <div style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--blue-border);border-radius:18px;padding:26px 24px;margin-bottom:18px;">
+    <div style="font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;">Pendapatan Bulan Ini</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:40px;font-weight:700;color:var(--blue-light);margin:6px 0 4px;">RM ${income.toFixed(2)}</div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text2);">
+      <span>Komisyen sebenar: <b style="color:var(--text)">RM ${komisyen.toFixed(2)}</b></span>
+      <span>Bonus KPI: <b style="color:${cukup?'#5AA3FF':'var(--text3)'}">${cukup ? 'RM '+bonus.toFixed(2) : 'Belum dibuka 🔒'}</b></span>
+    </div>
+  </div>
+
+  <!-- KPI 2+2+1 -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div style="font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;">Sasaran KPI (2 + 2 + 1)</div>
+      <span style="font-size:11px;font-weight:700;letter-spacing:1px;padding:5px 14px;border-radius:14px;${cukup?'background:rgba(43,127,224,0.18);color:#5AA3FF;border:1px solid var(--blue-border2);':'background:var(--red-dim);color:#ff8080;border:1px solid var(--red-border);'}">${cukup?'✓ CUKUP KPI':'BELUM CUKUP'}</span>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px;"><span style="color:var(--text)">🏠 Property <span style="color:var(--text3)">(wajib ≥${KPI_PROPERTY_MIN})</span></span><span style="font-family:'JetBrains Mono',monospace;color:${prop>=KPI_PROPERTY_MIN?'#5AA3FF':'var(--text2)'}">${prop} / ${KPI_PROPERTY_MIN}</span></div>
+      ${bar(propPct, prop>=KPI_PROPERTY_MIN)}
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px;"><span style="color:var(--text)">💳✈️ Loan + Travel <span style="color:var(--text3)">(fleksibel ≥${KPI_FLEX_MIN})</span></span><span style="font-family:'JetBrains Mono',monospace;color:${flex>=KPI_FLEX_MIN?'#5AA3FF':'var(--text2)'}">${flex} / ${KPI_FLEX_MIN}</span></div>
+      ${bar(flexPct, flex>=KPI_FLEX_MIN)}
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">Loan: ${loan} · Travel: ${travel}</div>
+    </div>
+  </div>
+
+  <!-- Pecahan deal -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:20px 24px;">
+    <div style="font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">Pecahan Deal Bulan Ini</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      ${kpiPill('🏠 Property', prop)} ${kpiPill('💳 Loan', loan)} ${kpiPill('✈️ Travel', travel)}
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:14px;">Komisyen sentiasa dikira untuk setiap deal sebenar. Bonus KPI hanya dibuka bila sasaran 2+2+1 dicapai — pendapatan tertakluk kepada usaha.</div>
+  </div>`;
+}
+
+function kpiPill(label, n){
+  return `<div style="flex:1;min-width:130px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;"><div style="font-size:12px;color:var(--text2);">${label}</div><div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--text);margin-top:2px;">${n}</div></div>`;
+}
+
+function kpiCompanyHTML(month){
+  const total = month.reduce((s,r) => s + parseFloat(r.rmAgen||0), 0);
+  const byBiz = { property:{n:0,rm:0}, loan:{n:0,rm:0}, travel:{n:0,rm:0} };
+  month.forEach(r => { const b = byBiz[r.biz]; if (b){ b.n++; b.rm += parseFloat(r.rmAgen||0); } });
+
+  const agents = {};
+  month.forEach(r => { const a = r.agent||'—'; agents[a] = agents[a]||{n:0,rm:0}; agents[a].n++; agents[a].rm += parseFloat(r.rmAgen||0); });
+  const rows = Object.keys(agents).sort((a,b)=>agents[b].rm-agents[a].rm).map(a =>
+    `<tr><td style="padding:11px 8px;border-bottom:1px solid var(--border);color:var(--text)">${esc(a)}</td><td style="padding:11px 8px;border-bottom:1px solid var(--border);text-align:center;color:var(--text2)">${agents[a].n}</td><td style="padding:11px 8px;border-bottom:1px solid var(--border);text-align:right;font-family:'JetBrains Mono',monospace;color:#5AA3FF">RM ${agents[a].rm.toFixed(2)}</td></tr>`
+  ).join('') || '<tr><td colspan="3" style="padding:24px;text-align:center;color:var(--text3)">Tiada rekod komisyen bulan ini.</td></tr>';
+
+  return `
+  <div style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--blue-border);border-radius:18px;padding:26px 24px;margin-bottom:18px;">
+    <div style="font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;">Jumlah Komisyen Agen — Bulan Ini</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:40px;font-weight:700;color:var(--blue-light);margin:6px 0 2px;">RM ${total.toFixed(2)}</div>
+    <div style="font-size:12px;color:var(--text3);">Paparan Mastermind / Admin</div>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+    ${kpiBizCard('🏠 Property', byBiz.property)} ${kpiBizCard('💳 Loan', byBiz.loan)} ${kpiBizCard('✈️ Travel', byBiz.travel)}
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:20px 24px;">
+    <div style="font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">Prestasi Agen</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr style="font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;"><th style="text-align:left;padding:0 8px 8px;">Agen</th><th style="text-align:center;padding:0 8px 8px;">Deal</th><th style="text-align:right;padding:0 8px 8px;">Komisyen</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function kpiBizCard(label, d){
+  return `<div style="flex:1;min-width:150px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;"><div style="font-size:12px;color:var(--text2);">${label}</div><div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--text);margin:3px 0;">RM ${d.rm.toFixed(2)}</div><div style="font-size:11px;color:var(--text3);">${d.n} deal</div></div>`;
+}
 
 async function enterAdmin() {
   if (!currentUser || !ADMIN_EMAILS.includes(currentUser.email)) {
