@@ -1,3 +1,836 @@
-git rm index.html
-git commit -m "Remove index.html"
-git push origin main
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIS GROUP HUB</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#050810;color:#fff;overflow:hidden;height:100vh;width:100vw}
+#app{display:flex;height:100vh;width:100vw}
+
+/* SIDEBAR */
+#sidebar{width:200px;background:#080c18;border-right:1px solid #0f1628;display:flex;flex-direction:column;flex-shrink:0;z-index:10}
+.sidebar-logo{padding:16px 14px 14px;border-bottom:1px solid #0f1628}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo-name{font-size:13px;font-weight:700;letter-spacing:1.5px;color:#fff}
+.logo-tagline{font-size:7.5px;color:#1565c0;letter-spacing:1.5px;margin-top:1px}
+.nav{flex:1;padding:8px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:#3a4a6a;font-size:12px;transition:all 0.2s;border-left:2px solid transparent;user-select:none}
+.nav-item:hover{color:#7a9acc;background:rgba(21,101,192,0.06)}
+.nav-item.active{color:#aac8ff;background:rgba(21,101,192,0.1);border-left-color:#1565c0}
+.nav-item svg{width:14px;height:14px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2}
+.nav-section{padding:10px 14px 3px;font-size:8.5px;color:#1e2840;letter-spacing:2.5px;font-weight:600}
+.sidebar-bottom{padding:12px 14px;border-top:1px solid #0f1628}
+.user-chip{display:flex;align-items:center;gap:8px}
+.user-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1565c0,#d32f2f);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:11.5px;font-weight:600;color:#aac8ff}
+.user-role{font-size:9.5px;color:#2a3a5a}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#topbar{height:46px;background:#080c18;border-bottom:1px solid #0f1628;display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
+.topbar-title{font-size:12.5px;font-weight:600;color:#aac8ff;flex:1}
+.status-badge{display:flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid #0f1628;border-radius:20px;font-size:10.5px;color:#3a4a6a;white-space:nowrap}
+.dot-green{width:5px;height:5px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.topbar-btn{padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid #1565c0;background:rgba(21,101,192,0.15);color:#7ab0ff;transition:all 0.2s;white-space:nowrap}
+.topbar-btn:hover{background:#1565c0;color:#fff}
+
+#content{flex:1;position:relative;overflow:hidden;min-height:0}
+
+/* OFFICE VIEW - CSS based, no canvas */
+#view-office{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+.office-bg{flex:1;position:relative;overflow:hidden}
+
+/* KLCC Night Sky */
+.sky{position:absolute;inset:0;background:linear-gradient(180deg,#010610 0%,#08142e 60%,#0c1c3a 100%)}
+
+/* Stars */
+.stars{position:absolute;inset:0}
+.star{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,0.7);animation:twinkle 3s infinite alternate}
+@keyframes twinkle{0%{opacity:0.3}100%{opacity:1}}
+
+/* Moon */
+.moon{position:absolute;top:8%;right:10%;width:26px;height:26px;border-radius:50%;background:#fffde7;box-shadow:0 0 20px rgba(255,253,200,0.4)}
+.moon::after{content:'';position:absolute;top:-2px;left:4px;width:20px;height:20px;border-radius:50%;background:#08142e}
+
+/* KLCC Buildings */
+.buildings{position:absolute;bottom:42%;left:0;right:0;height:55%;display:flex;align-items:flex-end;justify-content:center;gap:0}
+
+/* Petronas Tower base */
+.twin-towers{position:relative;display:flex;gap:12px;align-items:flex-end;margin:0 20px}
+.tower{width:38px;background:linear-gradient(180deg,#1e2d55 0%,#141e38 100%);position:relative;border-radius:1px 1px 0 0}
+.tower::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:4px;background:#5aa0f0;bottom:100%}
+.tower-windows{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;padding:2px}
+.tower-win{background:rgba(80,140,255,0.12);border-radius:0.5px}
+.tower-win.lit{background:rgba(255,210,80,0.45)}
+.skybridge{position:absolute;left:38px;height:8px;width:12px;background:#1a2540;top:35%}
+
+/* KL Tower */
+.kl-tower{position:relative;margin:0 40px;display:flex;flex-direction:column;align-items:center}
+.kl-base{width:32px;background:#151e38;height:40px}
+.kl-shaft{width:10px;background:#1a2540;height:90px}
+.kl-pod{width:28px;height:30px;background:#1e2d50;border-radius:4px;border:1px solid rgba(100,150,255,0.2)}
+.kl-antenna{width:3px;background:#3a80d9;height:40px;margin:0 auto}
+
+/* Background buildings */
+.bg-buildings{position:absolute;bottom:42%;left:0;right:0;display:flex;gap:4px;padding:0 10px;align-items:flex-end}
+.bg-bld{background:#0a1220;position:relative}
+.bg-bld-wins{position:absolute;inset:3px;display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.bg-bld-win{background:rgba(100,160,255,0.07)}
+
+/* OFFICE FLOOR */
+.office-floor{position:absolute;bottom:0;left:0;right:0;height:42%;background:linear-gradient(180deg,#0b1525 0%,#0d1830 40%,#060c18 100%)}
+
+/* Glass window wall */
+.glass-wall{position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(180deg,rgba(21,50,120,0.35) 0%,rgba(8,16,40,0.05) 100%)}
+.glass-wall::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 54px,rgba(80,130,220,0.1) 55px),repeating-linear-gradient(180deg,transparent,transparent 30px,rgba(80,130,220,0.08) 31px)}
+
+/* Floor grid */
+.floor-grid{position:absolute;bottom:0;left:0;right:0;height:65%;background:repeating-linear-gradient(90deg,transparent,transparent 54px,rgba(20,45,100,0.18) 55px),repeating-linear-gradient(180deg,transparent,transparent 44px,rgba(20,45,100,0.15) 45px)}
+
+/* Carpet */
+.carpet{position:absolute;bottom:10%;left:5%;width:45%;height:55%;border:1px solid rgba(21,101,192,0.12);background:rgba(16,40,120,0.06);border-radius:6px}
+
+/* FURNITURE */
+.furniture{position:absolute;inset:0}
+.desk{position:absolute;width:80px;height:46px}
+.desk-body{width:100%;height:100%;background:linear-gradient(180deg,#18223c,#0f1828);border-top:2px solid rgba(80,130,255,0.12);border-radius:2px;position:relative}
+.desk-monitor{position:absolute;left:5px;top:4px;width:30px;height:22px;background:#0c1830;border-radius:1px;overflow:hidden}
+.desk-screen{position:absolute;inset:1px;background:linear-gradient(135deg,#0d47a1,#1565c0)}
+.desk-screen::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent,transparent 3px,rgba(255,255,255,0.05) 4px)}
+.desk-keyboard{position:absolute;right:3px;top:14px;width:28px;height:14px;background:#0e1628;border-radius:1px}
+.desk-stand{position:absolute;left:17px;bottom:-8px;width:8px;height:8px;background:#141e30}
+.desk-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:7.5px;color:rgba(80,130,255,0.5);white-space:nowrap;font-weight:600}
+
+.meeting-table{position:absolute;width:130px;height:78px;background:radial-gradient(ellipse at 30% 30%,#1a2848,#0e1830);border:1.5px solid rgba(21,101,192,0.35);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.meeting-table span{font-size:9px;font-weight:700;color:rgba(21,101,192,0.5);letter-spacing:1px}
+.meeting-table small{font-size:7px;color:rgba(21,101,192,0.2);letter-spacing:0.5px}
+
+.sofa{position:absolute;height:32px;background:linear-gradient(180deg,#1c1545,#0c0a20);border-radius:5px;overflow:hidden}
+.sofa::before{content:'';position:absolute;left:0;top:0;bottom:0;width:11px;background:#1c1545}
+.sofa::after{content:'';position:absolute;right:0;top:0;bottom:0;width:11px;background:#1c1545}
+
+.plant{position:absolute;width:20px;height:30px}
+.plant-pot{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:14px;height:11px;background:#150a03;border-radius:2px}
+.plant-leaves{position:absolute;bottom:11px;left:50%;transform:translateX(-50%);width:20px;height:22px;background:radial-gradient(ellipse,#308030 0%,#163d0e 100%);border-radius:50% 50% 30% 30%}
+
+.watercooler{position:absolute;width:16px;height:48px;background:#0c1424;border-radius:2px}
+.watercooler::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:12px;height:16px;background:rgba(80,180,255,0.55);border-radius:50% 50% 0 0}
+
+/* MODULE OVERLAY */
+.module-overlay{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:5px;z-index:5}
+.mod-card{background:rgba(5,8,20,0.9);border:1px solid #0f1e38;border-radius:9px;padding:8px 11px;cursor:pointer;display:flex;align-items:center;gap:9px;min-width:125px;transition:all 0.2s;backdrop-filter:blur(8px)}
+.mod-card:hover{border-color:#1565c0;background:rgba(21,101,192,0.18)}
+.mod-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mod-icon.prop{background:#1565c0}
+.mod-icon.loan{background:#2e7d32}
+.mod-icon.travel{background:#6a1b9a}
+.mod-icon svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2}
+.mod-title{font-size:11.5px;font-weight:600;color:#aac8ff}
+.mod-count{font-size:9.5px;color:#2a4060}
+
+/* CONSOLE */
+.office-console{height:42px;background:rgba(4,6,16,0.97);border-top:1px solid #0f1628;display:flex;align-items:center;padding:0 14px;gap:14px;flex-shrink:0}
+.console-label{font-size:8.5px;color:#1565c0;letter-spacing:2.5px;font-weight:700}
+.console-stat{font-size:9.5px;color:#2a3a5a}
+.console-stat b{color:#5a7aaa}
+.console-btns{margin-left:auto;display:flex;gap:5px}
+.console-btn{padding:3px 9px;border-radius:4px;font-size:9.5px;cursor:pointer;border:1px solid #0f1e38;background:transparent;color:#3a5a8a;transition:all 0.2s}
+.console-btn:hover{background:#1565c0;border-color:#1565c0;color:#fff}
+
+/* CHIBI AVATARS - CSS animated */
+.agent-wrap{position:absolute;transition:none}
+.chibi{position:relative;width:40px;height:72px;cursor:pointer}
+.chibi:hover .chibi-tooltip{display:block}
+
+/* Head */
+.chibi-head{position:absolute;top:0;left:50%;transform:translateX(-50%);width:30px;height:32px;border-radius:50%;z-index:3}
+.chibi-hair{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:32px;height:20px;border-radius:50% 50% 0 0;z-index:4}
+.chibi-eyes{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:24px;height:8px;display:flex;justify-content:space-around;align-items:center;z-index:5}
+.chibi-eye{width:5px;height:6px;border-radius:50%;background:#1a1a2a}
+.chibi-eye::after{content:'';position:absolute;top:1px;left:0.5px;width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,0.9)}
+.chibi-blush{position:absolute;top:14px;width:7px;height:4px;border-radius:50%;background:rgba(255,130,130,0.35);z-index:5}
+.chibi-blush.left{left:2px}
+.chibi-blush.right{right:2px}
+.chibi-mouth{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:10px;height:4px;border-bottom:1.5px solid #a04848;border-radius:0 0 50% 50%;z-index:5}
+.chibi-status{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#22c55e;border:1.5px solid #050810;z-index:6}
+
+/* Neck */
+.chibi-neck{position:absolute;top:31px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:2px;z-index:2}
+
+/* Body/blazer */
+.chibi-body{position:absolute;top:36px;left:50%;transform:translateX(-50%);width:26px;height:20px;border-radius:4px;z-index:2;overflow:visible}
+.chibi-lapel-l{position:absolute;top:0;left:0;width:10px;height:14px;border-radius:0 0 50% 0;z-index:3}
+.chibi-lapel-r{position:absolute;top:0;right:0;width:10px;height:14px;border-radius:0 0 0 50%;z-index:3}
+.chibi-shirt{position:absolute;top:0;left:50%;transform:translateX(-50%);width:8px;height:10px;background:#dde8f8;clip-path:polygon(50% 0%,0% 100%,100% 100%);z-index:4}
+.chibi-tie{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:5px;height:12px;border-radius:0 0 3px 3px;z-index:5}
+.chibi-badge{position:absolute;right:-2px;top:4px;width:6px;height:8px;background:white;border-radius:1px;z-index:5}
+
+/* Arms */
+.chibi-arm{position:absolute;width:8px;height:14px;border-radius:4px;top:37px;z-index:1}
+.chibi-arm.left{left:4px;transform-origin:top center}
+.chibi-arm.right{right:4px;transform-origin:top center}
+
+/* Legs */
+.chibi-leg{position:absolute;bottom:0;width:9px;height:16px;border-radius:2px;z-index:2}
+.chibi-leg.left{left:8px;transform-origin:top center}
+.chibi-leg.right{right:8px;transform-origin:top center}
+.chibi-shoe{position:absolute;bottom:-3px;width:11px;height:5px;border-radius:2px;background:#0a0a14}
+.chibi-shoe.left{left:7px}
+.chibi-shoe.right{right:7px}
+
+/* Name tag */
+.chibi-nametag{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);background:rgba(4,6,16,0.88);border:0.5px solid rgba(21,101,192,0.4);border-radius:4px;padding:2px 6px;white-space:nowrap;font-size:7.5px;font-weight:700;color:#7ab0e8;z-index:10}
+
+/* Walk animation */
+@keyframes walkLeg{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-18deg)}}
+@keyframes walkArm{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.chibi.walking .chibi-leg.left{animation:walkLeg 0.5s ease-in-out infinite}
+.chibi.walking .chibi-leg.right{animation:walkLeg 0.5s ease-in-out infinite reverse}
+.chibi.walking .chibi-arm.left{animation:walkArm 0.5s ease-in-out infinite}
+.chibi.walking .chibi-arm.right{animation:walkArm 0.5s ease-in-out infinite reverse}
+.chibi.walking .chibi-head{animation:bob 0.5s ease-in-out infinite}
+@keyframes blinkEye{0%,90%,100%{transform:scaleY(1)}95%{transform:scaleY(0.1)}}
+.chibi-eye{animation:blinkEye 4s ease-in-out infinite}
+
+/* Tooltip */
+.chibi-tooltip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(4,6,16,0.97);border:1px solid rgba(21,101,192,0.4);border-radius:8px;padding:7px 10px;white-space:nowrap;z-index:50;margin-bottom:6px;pointer-events:none}
+.chibi-tooltip b{color:#aac8ff;font-size:11px;display:block}
+.chibi-tooltip span{color:#3a5a8a;font-size:9.5px;display:block}
+.chibi-tooltip em{color:#22c55e;font-size:9px}
+/* hijab */
+.chibi-hijab{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:34px;height:38px;border-radius:50% 50% 40% 40%;z-index:3}
+.chibi-hijab-face{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:22px;height:26px;border-radius:50%;z-index:4}
+/* spiky hair extras */
+.chibi-spike{position:absolute;top:-14px;width:0;height:0;z-index:5}
+/* ponytail */
+.chibi-ponytail{position:absolute;top:5px;right:-4px;width:6px;height:20px;border-radius:3px;z-index:2}
+@keyframes ponySwing{0%,100%{transform:rotate(5deg)}50%{transform:rotate(-5deg)}}
+.chibi-ponytail{animation:ponySwing 1.5s ease-in-out infinite;transform-origin:top center}
+
+/* AI PANEL */
+#ai-panel{position:absolute;right:0;top:0;bottom:44px;width:300px;background:rgba(5,8,20,0.97);border-left:1px solid #0f1628;display:none;flex-direction:column;z-index:15}
+#ai-panel.open{display:flex}
+.ai-header{padding:12px 14px;border-bottom:1px solid #0f1628;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.ai-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1565c0,#6a1b9a);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ai-name{font-size:12px;font-weight:700;color:#aac8ff}
+.ai-status{font-size:9px;color:#22c55e}
+.ai-close{margin-left:auto;background:none;border:none;color:#3a4a6a;cursor:pointer;font-size:16px}
+.ai-close:hover{color:#aac8ff}
+.ai-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ai-messages::-webkit-scrollbar{width:2px}
+.ai-messages::-webkit-scrollbar-thumb{background:#0f1628}
+.msg{max-width:90%}
+.msg.ai{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.msg-bubble{padding:9px 12px;border-radius:10px;font-size:11.5px;line-height:1.5}
+.msg.ai .msg-bubble{background:#0d1428;border:1px solid #0f1e38;color:#8ab0d8;border-radius:4px 10px 10px 10px}
+.msg.user .msg-bubble{background:rgba(21,101,192,0.2);border:1px solid rgba(21,101,192,0.3);color:#aac8ff;border-radius:10px 4px 10px 10px}
+.msg-time{font-size:9px;color:#1e2840;margin-top:3px;padding:0 4px}
+.msg.user .msg-time{text-align:right}
+.ai-quick-btns{padding:8px 10px;border-top:1px solid #0f1628;display:flex;flex-wrap:wrap;gap:4px;flex-shrink:0}
+.quick-btn{padding:4px 8px;border-radius:12px;border:1px solid #0f1e38;background:transparent;color:#3a5a8a;font-size:9.5px;cursor:pointer;transition:all 0.2s}
+.quick-btn:hover{border-color:#1565c0;color:#7ab0ff}
+.ai-input-row{padding:10px;border-top:1px solid #0f1628;display:flex;gap:6px;flex-shrink:0}
+.ai-input{flex:1;background:#0a1020;border:1px solid #0f1e38;border-radius:7px;padding:7px 10px;color:#aac8ff;font-size:11.5px;outline:none;font-family:inherit}
+.ai-input:focus{border-color:#1565c0}
+.ai-send{width:34px;height:34px;border-radius:7px;border:none;background:#1565c0;color:#fff;cursor:pointer;font-size:14px;flex-shrink:0}
+.ai-send:hover{background:#1976d2}
+.ai-send:disabled{background:#0f1e38;color:#1e2840;cursor:not-allowed}
+.typing-dots{display:flex;gap:4px;padding:4px 0}
+.typing-dots span{width:5px;height:5px;border-radius:50%;background:#1565c0;animation:dotB 1.2s infinite}
+.typing-dots span:nth-child(2){animation-delay:0.2s}
+.typing-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes dotB{0%,80%,100%{transform:scale(0.7);opacity:0.4}40%{transform:scale(1);opacity:1}}
+.ai-fab{position:absolute;right:10px;bottom:52px;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1565c0,#6a1b9a);border:none;color:#fff;font-size:20px;cursor:pointer;z-index:14;box-shadow:0 4px 20px rgba(21,101,192,0.5);display:flex;align-items:center;justify-content:center}
+.ai-fab:hover{transform:scale(1.08)}
+
+/* KANBAN */
+#view-kanban{position:absolute;inset:0;display:none;flex-direction:column;padding:14px;gap:10px;overflow:hidden}
+.kanban-header{display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.kanban-header h2{font-size:14px;font-weight:600;color:#aac8ff}
+.filter-tabs{display:flex;gap:4px}
+.filter-tab{padding:3px 9px;border-radius:14px;font-size:10.5px;cursor:pointer;border:1px solid #0f1628;background:transparent;color:#3a4a6a;transition:all 0.2s}
+.filter-tab.active{background:#0f1e38;color:#aac8ff}
+.add-lead-btn{margin-left:auto;padding:6px 13px;border-radius:7px;font-size:11px;cursor:pointer;border:none;background:#1565c0;color:#fff}
+.add-lead-btn:hover{background:#1976d2}
+.kanban-cols{display:flex;gap:8px;flex:1;overflow-x:auto;min-height:0}
+.kan-col{flex:1;min-width:145px;background:#080c18;border:1px solid #0f1628;border-radius:9px;display:flex;flex-direction:column;overflow:hidden}
+.kan-col-head{padding:9px 11px;border-bottom:1px solid #0f1628;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.kan-col-title{font-size:9.5px;font-weight:600;color:#3a5a8a;text-transform:uppercase;letter-spacing:1.2px}
+.kan-count{background:#0f1628;color:#2a4060;padding:1px 6px;border-radius:8px;font-size:9.5px}
+.kan-cards{flex:1;overflow-y:auto;padding:7px}
+.kan-cards::-webkit-scrollbar{width:2px}
+.kan-cards::-webkit-scrollbar-thumb{background:#0f1628}
+.kan-card{background:#0a0e1a;border:1px solid #0f1628;border-radius:7px;padding:9px 10px;margin-bottom:5px;cursor:pointer;transition:border-color 0.2s}
+.kan-card:hover{border-color:#1565c0}
+.kan-card-name{font-size:11.5px;font-weight:600;color:#8ab0d8;margin-bottom:2px}
+.kan-card-meta{font-size:9.5px;color:#2a3a5a;margin-bottom:5px}
+.kan-card-footer{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.kan-tag{padding:1px 6px;border-radius:8px;font-size:8.5px;font-weight:600}
+.tag-prop{background:rgba(21,101,192,0.15);color:#4a90d9}
+.tag-loan{background:rgba(46,125,50,0.15);color:#4a9a4a}
+.tag-travel{background:rgba(106,27,154,0.15);color:#9a60c8}
+.kan-card-actions{display:flex;gap:2px;opacity:0;transition:opacity 0.2s}
+.kan-card:hover .kan-card-actions{opacity:1}
+.card-btn{width:18px;height:18px;border-radius:3px;border:1px solid #1a2038;background:transparent;color:#3a5a8a;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1}
+.card-btn:hover{background:#1565c0;border-color:#1565c0;color:#fff}
+.card-btn.del:hover{background:#c62828;border-color:#c62828}
+
+/* STATS */
+#view-stats{position:absolute;inset:0;display:none;flex-direction:column;padding:14px;gap:12px;overflow-y:auto}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;flex-shrink:0}
+.stat-card{background:#080c18;border:1px solid #0f1628;border-radius:9px;padding:13px 15px}
+.stat-label{font-size:9.5px;color:#2a3a5a;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.stat-val{font-size:24px;font-weight:700;color:#aac8ff}
+.stat-sub{font-size:9.5px;color:#2a3a5a;margin-top:2px}
+.bar-card{background:#080c18;border:1px solid #0f1628;border-radius:9px;padding:13px 15px}
+.bar-title{font-size:9.5px;font-weight:600;color:#2a4060;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.bar-row{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.bar-name{font-size:10.5px;color:#3a5a8a;width:58px;flex-shrink:0}
+.bar-track{flex:1;height:4px;background:#0f1628;border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.bar-num{font-size:10.5px;color:#3a5a8a;width:28px;text-align:right}
+.agents-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.agent-card{background:#080c18;border:1px solid #0f1628;border-radius:9px;padding:11px;display:flex;align-items:center;gap:9px}
+.agent-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.agent-name{font-size:11.5px;font-weight:600;color:#8ab0d8}
+.agent-role{font-size:9.5px;color:#2a3a5a}
+.agent-badge{padding:2px 7px;border-radius:8px;font-size:8.5px;font-weight:600;margin-left:auto}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#080c18;border:1px solid #0f1628;border-radius:13px;padding:22px;width:350px;max-width:90vw}
+.modal-title{font-size:14px;font-weight:700;color:#aac8ff;margin-bottom:16px}
+.form-group{margin-bottom:11px}
+.form-label{font-size:9.5px;color:#3a5a8a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block}
+.form-input,.form-select{width:100%;padding:8px 11px;background:#050810;border:1px solid #0f1628;border-radius:6px;color:#8ab0d8;font-size:12.5px;outline:none;font-family:inherit}
+.form-input:focus,.form-select:focus{border-color:#1565c0}
+.form-select option{background:#080c18}
+.modal-btns{display:flex;gap:7px;margin-top:16px;justify-content:flex-end}
+.btn-cancel{padding:7px 14px;border-radius:6px;border:1px solid #0f1628;background:transparent;color:#3a5a8a;cursor:pointer;font-size:11.5px}
+.btn-save{padding:7px 14px;border-radius:6px;border:none;background:#1565c0;color:#fff;cursor:pointer;font-size:11.5px;font-weight:600}
+.btn-save:hover{background:#1976d2}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);background:#1565c0;color:#fff;padding:9px 18px;border-radius:7px;font-size:11.5px;z-index:200;opacity:0;transition:all 0.3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrap">
+        <svg width="34" height="34" viewBox="0 0 40 40" fill="none" style="flex-shrink:0">
+          <circle cx="20" cy="20" r="19" stroke="#1565c0" stroke-width="1.5"/>
+          <path d="M20 8L28 14L28 26L20 32L12 26L12 14Z" stroke="white" stroke-width="1.5" fill="none"/>
+          <circle cx="13" cy="20" r="3.5" fill="#1565c0"/>
+          <circle cx="27" cy="20" r="3.5" fill="#d32f2f"/>
+        </svg>
+        <div><div class="logo-name">AIS GROUP</div><div class="logo-tagline">ACHIEVER · INFINITE · SUCCESS</div></div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">MAIN</div>
+      <div class="nav-item active" onclick="switchView('office',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>Office</div>
+      <div class="nav-item" onclick="switchView('kanban',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="3" width="4" height="12" rx="1"/><rect x="17" y="3" width="4" height="15" rx="1"/></svg>Pipeline</div>
+      <div class="nav-item" onclick="switchView('stats',this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Dashboard</div>
+      <div class="nav-section">MODUL</div>
+      <div class="nav-item" onclick="switchView('kanban',this);setTimeout(()=>filterLeads('Property'),50)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Property</div>
+      <div class="nav-item" onclick="switchView('kanban',this);setTimeout(()=>filterLeads('Loan'),50)"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Loan</div>
+      <div class="nav-item" onclick="switchView('kanban',this);setTimeout(()=>filterLeads('Travel'),50)"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>Travel</div>
+      <div class="nav-section">AI + SYSTEM</div>
+      <div class="nav-item" onclick="toggleAI()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83"/></svg>AI Agent</div>
+      <div class="nav-item" onclick="switchView('stats',this)"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Agents</div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-av">ZM</div>
+        <div><div class="user-name">Zack Mastermind</div><div class="user-role">Director · AIS Group</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <span class="topbar-title" id="topbar-title">🏙️ AIS Group — KLCC Office</span>
+      <div class="status-badge"><div class="dot-green"></div><span>4 Agents Online</span></div>
+      <button class="topbar-btn" onclick="toggleAI()">🤖 AI Agent</button>
+      <button class="topbar-btn" onclick="openAddModal()">+ Lead</button>
+    </div>
+    <div id="content">
+
+      <!-- OFFICE VIEW (CSS based) -->
+      <div id="view-office">
+        <div class="office-bg">
+          <!-- Sky & KLCC -->
+          <div class="sky"></div>
+          <div id="stars-container"></div>
+          <div class="moon"></div>
+
+          <!-- Background buildings -->
+          <div class="bg-buildings" style="position:absolute;bottom:42%;left:0;right:0;display:flex;gap:3px;padding:0 8px;align-items:flex-end;pointer-events:none">
+            <div class="bg-bld" style="width:8%;height:110px"><div class="bg-bld-wins" style="inset:3px;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;position:absolute"><div class="bg-bld-win"></div><div class="bg-bld-win" style="background:rgba(255,210,80,0.25)"></div><div class="bg-bld-win"></div><div class="bg-bld-win"></div><div class="bg-bld-win"></div><div class="bg-bld-win" style="background:rgba(255,210,80,0.15)"></div></div></div>
+            <div class="bg-bld" style="width:5%;height:80px"></div>
+            <div style="flex:1"></div>
+            <!-- KL Tower -->
+            <div style="display:flex;flex-direction:column;align-items:center;margin:0 30px">
+              <div style="width:3px;height:40px;background:#3a80d9"></div>
+              <div style="width:28px;height:30px;background:#1e2d50;border-radius:3px;border:1px solid rgba(100,150,255,0.2);display:flex;flex-wrap:wrap;gap:2px;padding:4px;justify-content:center">
+                <div style="width:4px;height:4px;background:rgba(255,200,50,0.6);border-radius:1px"></div>
+                <div style="width:4px;height:4px;background:rgba(100,160,255,0.3);border-radius:1px"></div>
+                <div style="width:4px;height:4px;background:rgba(255,200,50,0.4);border-radius:1px"></div>
+              </div>
+              <div style="width:10px;height:85px;background:#1a2540"></div>
+              <div style="width:32px;height:38px;background:#151e38"></div>
+            </div>
+            <div style="flex:1"></div>
+            <div class="bg-bld" style="width:6%;height:95px"></div>
+            <div class="bg-bld" style="width:8%;height:70px"></div>
+          </div>
+
+          <!-- Petronas Twin Towers -->
+          <div style="position:absolute;bottom:42%;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:10px;pointer-events:none">
+            <!-- Tower 1 -->
+            <div style="display:flex;flex-direction:column;align-items:center">
+              <div style="width:3px;height:30px;background:#5aa0f0"></div>
+              <div style="width:38px;height:200px;background:linear-gradient(180deg,#1e2d55,#141e38);position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;padding:2px">
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.4)"></div><div style="background:rgba(80,140,255,0.12)"></div>
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.3)"></div>
+                <div style="background:rgba(255,210,80,0.35)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div>
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.25)"></div><div style="background:rgba(80,140,255,0.12)"></div>
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.4)"></div>
+                <div style="background:rgba(80,140,255,0.15)"></div><div style="background:rgba(80,140,255,0.15)"></div><div style="background:rgba(80,140,255,0.15)"></div>
+                <div style="background:rgba(255,210,80,0.3)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div>
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.35)"></div>
+              </div>
+              <!-- Skybridge arm right -->
+              <div style="position:relative;width:38px"><div style="position:absolute;right:-20px;top:-110px;width:20px;height:7px;background:#1a2540"></div></div>
+            </div>
+            <!-- Skybridge center -->
+            <div style="position:absolute;bottom:108px;left:38px;width:10px;height:7px;background:#1a2540;z-index:2"></div>
+            <!-- Tower 2 -->
+            <div style="display:flex;flex-direction:column;align-items:center">
+              <div style="width:3px;height:30px;background:#5aa0f0"></div>
+              <div style="width:38px;height:200px;background:linear-gradient(180deg,#1a2848,#101828);position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;padding:2px">
+                <div style="background:rgba(255,210,80,0.4)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div>
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.3)"></div><div style="background:rgba(80,140,255,0.12)"></div>
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.35)"></div>
+                <div style="background:rgba(255,210,80,0.25)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div>
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.4)"></div>
+                <div style="background:rgba(80,140,255,0.15)"></div><div style="background:rgba(80,140,255,0.15)"></div><div style="background:rgba(80,140,255,0.15)"></div>
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.3)"></div><div style="background:rgba(80,140,255,0.12)"></div>
+                <div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(80,140,255,0.12)"></div><div style="background:rgba(255,210,80,0.35)"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Office floor -->
+          <div class="office-floor">
+            <div class="glass-wall"></div>
+            <div class="floor-grid"></div>
+            <div class="carpet"></div>
+          </div>
+
+          <!-- Furniture -->
+          <div class="furniture">
+            <!-- Desks -->
+            <div class="desk" style="left:7%;top:58%"><div class="desk-body"><div class="desk-monitor"><div class="desk-screen"></div></div><div class="desk-keyboard"></div><div class="desk-stand"></div></div><div class="desk-label">Farid</div></div>
+            <div class="desk" style="left:21%;top:56%"><div class="desk-body"><div class="desk-monitor"><div class="desk-screen"></div></div><div class="desk-keyboard"></div><div class="desk-stand"></div></div><div class="desk-label">Siti</div></div>
+            <div class="desk" style="left:7%;top:68%"><div class="desk-body"><div class="desk-monitor"><div class="desk-screen"></div></div><div class="desk-keyboard"></div><div class="desk-stand"></div></div><div class="desk-label">Hazim</div></div>
+            <div class="desk" style="left:21%;top:66%"><div class="desk-body"><div class="desk-monitor"><div class="desk-screen"></div></div><div class="desk-keyboard"></div><div class="desk-stand"></div></div><div class="desk-label">Aina</div></div>
+            <!-- Meeting table -->
+            <div class="meeting-table" style="position:absolute;left:57%;top:60%;transform:translate(-50%,-10%)"><span>AIS GROUP</span><small>KLCC · KL</small></div>
+            <!-- Sofas -->
+            <div class="sofa" style="position:absolute;left:7%;top:82%;width:78px"></div>
+            <div class="sofa" style="position:absolute;left:21%;top:82%;width:78px"></div>
+            <!-- Plants -->
+            <div class="plant" style="position:absolute;left:3%;top:57%"><div class="plant-leaves"></div><div class="plant-pot"></div></div>
+            <div class="plant" style="position:absolute;left:67%;top:57%"><div class="plant-leaves"></div><div class="plant-pot"></div></div>
+            <div class="plant" style="position:absolute;left:67%;top:76%"><div class="plant-leaves"></div><div class="plant-pot"></div></div>
+            <!-- Water cooler -->
+            <div class="watercooler" style="position:absolute;left:42%;top:72%"></div>
+          </div>
+
+          <!-- CHIBI AGENTS (CSS animated) -->
+          <div id="agents-layer" style="position:absolute;inset:0;pointer-events:none"></div>
+
+          <!-- Module overlay -->
+          <div class="module-overlay">
+            <div class="mod-card" onclick="switchView('kanban',null);setTimeout(()=>filterLeads('Property'),50)">
+              <div class="mod-icon prop"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+              <div><div class="mod-title">Property</div><div class="mod-count" id="mod-prop-count">0 leads</div></div>
+            </div>
+            <div class="mod-card" onclick="switchView('kanban',null);setTimeout(()=>filterLeads('Loan'),50)">
+              <div class="mod-icon loan"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+              <div><div class="mod-title">Loan</div><div class="mod-count" id="mod-loan-count">0 leads</div></div>
+            </div>
+            <div class="mod-card" onclick="switchView('kanban',null);setTimeout(()=>filterLeads('Travel'),50)">
+              <div class="mod-icon travel"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></div>
+              <div><div class="mod-title">Travel</div><div class="mod-count" id="mod-travel-count">0 leads</div></div>
+            </div>
+          </div>
+
+          <!-- AI FAB -->
+          <button class="ai-fab" onclick="toggleAI()">🤖</button>
+
+          <!-- AI Panel -->
+          <div id="ai-panel">
+            <div class="ai-header">
+              <div class="ai-avatar">🤖</div>
+              <div><div class="ai-name">AISA — AI Agent</div><div class="ai-status">● Online · AIS Group</div></div>
+              <button class="ai-close" onclick="toggleAI()">✕</button>
+            </div>
+            <div class="ai-messages" id="ai-messages">
+              <div class="msg ai"><div class="msg-bubble">Salam Zack! Saya <b>AISA</b> — AI Agent AIS Group anda. Tanya saya tentang leads, strategi jualan, atau analisa prestasi! 🏙️</div><div class="msg-time">AISA · Sekarang</div></div>
+            </div>
+            <div class="ai-quick-btns">
+              <button class="quick-btn" onclick="quickAsk('Analisa semua leads saya')">📊 Analisa</button>
+              <button class="quick-btn" onclick="quickAsk('Cadang strategi follow-up terbaik')">💡 Strategi</button>
+              <button class="quick-btn" onclick="quickAsk('Tips close deal property Malaysia')">🏠 Tips</button>
+              <button class="quick-btn" onclick="quickAsk('Macam mana nak capai KPI RM18K?')">🎯 KPI</button>
+            </div>
+            <div class="ai-input-row">
+              <input class="ai-input" id="ai-input" placeholder="Tanya AISA..." onkeydown="if(event.key==='Enter'){sendAI()}">
+              <button class="ai-send" id="ai-btn" onclick="sendAI()">➤</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Console -->
+        <div class="office-console">
+          <span class="console-label">AIS CONSOLE</span>
+          <span class="console-stat">LEADS <b id="con-leads">0</b></span>
+          <span class="console-stat">AGENTS <b>4</b></span>
+          <span class="console-stat">KOMISEN <b id="con-komisen">RM 0</b></span>
+          <div class="console-btns">
+            <button class="console-btn" onclick="openAddModal()">+ Lead</button>
+            <button class="console-btn" onclick="toggleAI()">🤖 AI</button>
+            <button class="console-btn" onclick="switchView('stats',null)">📊 Stats</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KANBAN -->
+      <div id="view-kanban">
+        <div class="kanban-header">
+          <h2>Sales Pipeline</h2>
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterLeads('all');setTab(this)">Semua</button>
+            <button class="filter-tab" onclick="filterLeads('Property');setTab(this)">Property</button>
+            <button class="filter-tab" onclick="filterLeads('Loan');setTab(this)">Loan</button>
+            <button class="filter-tab" onclick="filterLeads('Travel');setTab(this)">Travel</button>
+          </div>
+          <button class="add-lead-btn" onclick="openAddModal()">+ Tambah Lead</button>
+        </div>
+        <div class="kanban-cols">
+          <div class="kan-col"><div class="kan-col-head"><span class="kan-col-title">Prospek</span><span class="kan-count" id="cnt-0">0</span></div><div class="kan-cards" id="col-0"></div></div>
+          <div class="kan-col"><div class="kan-col-head"><span class="kan-col-title">Susulan</span><span class="kan-count" id="cnt-1">0</span></div><div class="kan-cards" id="col-1"></div></div>
+          <div class="kan-col"><div class="kan-col-head"><span class="kan-col-title">Dalam Proses</span><span class="kan-count" id="cnt-2">0</span></div><div class="kan-cards" id="col-2"></div></div>
+          <div class="kan-col"><div class="kan-col-head"><span class="kan-col-title">Selesai ✓</span><span class="kan-count" id="cnt-3">0</span></div><div class="kan-cards" id="col-3"></div></div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div id="view-stats">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">Jumlah Leads</div><div class="stat-val" id="s-leads">0</div><div class="stat-sub">Pipeline aktif</div></div>
+          <div class="stat-card"><div class="stat-label">Selesai</div><div class="stat-val" id="s-closed">0</div><div class="stat-sub" style="color:#22c55e">✓ Converted</div></div>
+          <div class="stat-card"><div class="stat-label">Agents</div><div class="stat-val">4</div><div class="stat-sub">KLCC Office</div></div>
+          <div class="stat-card"><div class="stat-label">Target KPI</div><div class="stat-val">RM18K</div><div class="stat-sub">Komisen bulanan</div></div>
+        </div>
+        <div class="bar-card">
+          <div class="bar-title">Prestasi Modul</div>
+          <div class="bar-row"><div class="bar-name">Property</div><div class="bar-track"><div class="bar-fill" id="bar-prop" style="width:0%;background:#1565c0"></div></div><div class="bar-num" id="bnum-prop">0</div></div>
+          <div class="bar-row"><div class="bar-name">Loan</div><div class="bar-track"><div class="bar-fill" id="bar-loan" style="width:0%;background:#2e7d32"></div></div><div class="bar-num" id="bnum-loan">0</div></div>
+          <div class="bar-row"><div class="bar-name">Travel</div><div class="bar-track"><div class="bar-fill" id="bar-travel" style="width:0%;background:#6a1b9a"></div></div><div class="bar-num" id="bnum-travel">0</div></div>
+        </div>
+        <div class="agents-grid">
+          <div class="agent-card"><div class="agent-av" style="background:#1a237e">FA</div><div><div class="agent-name">Agt. Farid</div><div class="agent-role">Property · Loan</div></div><span class="agent-badge" style="background:rgba(34,197,94,0.12);color:#22c55e">Aktif</span></div>
+          <div class="agent-card"><div class="agent-av" style="background:#880e4f">SI</div><div><div class="agent-name">Agt. Siti</div><div class="agent-role">Travel · Property</div></div><span class="agent-badge" style="background:rgba(34,197,94,0.12);color:#22c55e">Aktif</span></div>
+          <div class="agent-card"><div class="agent-av" style="background:#1b5e20">HZ</div><div><div class="agent-name">Agt. Hazim</div><div class="agent-role">Loan</div></div><span class="agent-badge" style="background:rgba(34,197,94,0.12);color:#22c55e">Aktif</span></div>
+          <div class="agent-card"><div class="agent-av" style="background:#bf360c">AI</div><div><div class="agent-name">Agt. Aina</div><div class="agent-role">Travel · Loan</div></div><span class="agent-badge" style="background:rgba(34,197,94,0.12);color:#22c55e">Aktif</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Tambah Lead Baru</div>
+    <div class="form-group"><label class="form-label">Nama</label><input class="form-input" id="f-name" placeholder="Ahmad bin Ali" type="text"></div>
+    <div class="form-group"><label class="form-label">Modul</label><select class="form-select" id="f-module"><option value="Property">🏠 Property</option><option value="Loan">💳 Loan</option><option value="Travel">✈️ Travel</option></select></div>
+    <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="f-note" placeholder="Lagenda Properties, Loan RM50K..." type="text"></div>
+    <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="f-status"><option value="0">Prospek</option><option value="1">Susulan</option><option value="2">Dalam Proses</option><option value="3">Selesai</option></select></div>
+    <div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Batal</button><button class="btn-save" onclick="saveLead()">Simpan</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const app=initializeApp({apiKey:"AIzaSyDijLtHtVjhThzwBWWnRMbPlLO2q2qeMGo",authDomain:"aisg-85b4a.firebaseapp.com",projectId:"aisg-85b4a",storageBucket:"aisg-85b4a.firebasestorage.app",messagingSenderId:"359928809200",appId:"1:359928809200:web:1bd1256aa9e8a5b93de435"});
+const db=getFirestore(app);const leadsRef=collection(db,'leads');
+window._leads=[];window._editId=null;window._filter='all';
+onSnapshot(leadsRef,snap=>{window._leads=snap.docs.map(d=>({id:d.id,...d.data()}));renderKanban();updateStats();});
+window.saveLead=async function(){
+  const name=document.getElementById('f-name').value.trim();const mod=document.getElementById('f-module').value;
+  const note=document.getElementById('f-note').value.trim();const status=parseInt(document.getElementById('f-status').value);
+  if(!name){showToast('Sila isi nama!');return;}
+  try{
+    if(window._editId){await updateDoc(doc(db,'leads',window._editId),{name,module:mod,note,status});showToast('✓ Dikemaskini');}
+    else{await addDoc(leadsRef,{name,module:mod,note,status,createdAt:Date.now()});showToast('✓ Lead ditambah');}
+    closeModal();
+  }catch(e){showToast('Error: '+e.message);}
+};
+window.deleteLead=async function(id){if(!confirm('Padam?'))return;await deleteDoc(doc(db,'leads',id));showToast('Dipadam');};
+window.editLead=function(id){
+  const l=window._leads.find(x=>x.id===id);if(!l)return;window._editId=id;
+  document.getElementById('modal-title').textContent='Edit Lead';
+  document.getElementById('f-name').value=l.name;document.getElementById('f-module').value=l.module;
+  document.getElementById('f-note').value=l.note||'';document.getElementById('f-status').value=l.status;
+  document.getElementById('modal-bg').classList.add('show');
+};
+window.moveLead=async function(id,dir){const l=window._leads.find(x=>x.id===id);if(!l)return;await updateDoc(doc(db,'leads',id),{status:Math.max(0,Math.min(3,l.status+dir))});};
+</script>
+<script>
+// STARS
+(function(){
+  const sc=document.getElementById('stars-container');
+  const pos=[[4,3],[11,6],[19,2],[31,8],[44,4],[57,7],[69,2],[79,5],[89,8],[94,3],[14,11],[37,9],[61,11],[84,10],[8,15],[25,13],[52,14],[77,12],[92,15],[35,5],[66,3]];
+  pos.forEach(([x,y],i)=>{
+    const s=document.createElement('div');
+    s.className='star';
+    s.style.cssText=`left:${x}%;top:${y}%;animation-delay:${(i*0.3)%3}s`;
+    sc.appendChild(s);
+  });
+})();
+
+// VIEWS
+function switchView(name,navEl){
+  ['office','kanban','stats'].forEach(v=>{
+    const el=document.getElementById('view-'+v);
+    if(el){el.style.display='none';}
+  });
+  const v=document.getElementById('view-'+name);
+  if(v){
+    if(name==='office') v.style.display='flex';
+    else{v.style.display='flex';v.style.flexDirection='column';}
+  }
+  if(name==='stats')setTimeout(updateBars,150);
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(navEl)navEl.classList.add('active');
+  const titles={office:'🏙️ AIS Group — KLCC Office',kanban:'Sales Pipeline',stats:'Dashboard'};
+  document.getElementById('topbar-title').textContent=titles[name]||'AIS Group';
+}
+
+// CHIBI AGENTS
+const CHIBI_DATA=[
+  {name:'Farid',role:'Property · Loan',skin:'#FDBCB4',hair:'#2c1810',blazer:'#1a237e',tie:'#d32f2f',type:'male-spiky'},
+  {name:'Siti',role:'Travel · Property',skin:'#F5CBA7',hair:'#1a1a1a',blazer:'#880e4f',hijab:'#4a0030',tie:null,type:'female-hijab'},
+  {name:'Hazim',role:'Loan',skin:'#D4A574',hair:'#1a1a1a',blazer:'#1b5e20',tie:'#f57c00',type:'male-short'},
+  {name:'Aina',role:'Travel · Loan',skin:'#FDBCB4',hair:'#8B4513',blazer:'#bf360c',tie:null,type:'female-ponytail'},
+];
+
+const agentState=CHIBI_DATA.map((a,i)=>({
+  ...a,
+  x:15+i*18,y:65+i%2*8,
+  vx:(i%2===0?0.06:-0.06),vy:(i<2?0.03:-0.03),
+  facing:i<2?1:-1
+}));
+
+function makeChibi(a){
+  const isF=a.type.startsWith('female');
+  const wrap=document.createElement('div');
+  wrap.className='agent-wrap';
+  wrap.style.cssText=`position:absolute;left:${a.x}%;top:${a.y}%;pointer-events:auto;z-index:20`;
+
+  let hairHTML='';
+  if(a.type==='female-hijab'){
+    hairHTML=`<div class="chibi-hijab" style="background:${a.hijab}"></div><div class="chibi-hijab-face" style="background:${a.skin}"></div>`;
+  } else if(a.type==='male-spiky'){
+    hairHTML=`<div class="chibi-hair" style="background:${a.hair};width:32px;height:18px;top:-10px"></div>
+    <div class="chibi-spike" style="left:4px;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:10px solid ${a.hair}"></div>
+    <div class="chibi-spike" style="left:10px;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:12px solid ${a.hair}"></div>
+    <div class="chibi-spike" style="left:16px;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:11px solid ${a.hair}"></div>
+    <div class="chibi-spike" style="left:22px;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:10px solid ${a.hair}"></div>`;
+  } else if(a.type==='male-short'){
+    hairHTML=`<div class="chibi-hair" style="background:${a.hair};width:32px;height:16px;top:-8px"></div>`;
+  } else if(a.type==='female-ponytail'){
+    hairHTML=`<div class="chibi-hair" style="background:${a.hair};width:32px;height:16px;top:-8px"></div>
+    <div class="chibi-ponytail" style="background:${a.hair}"></div>`;
+  }
+
+  const tieHTML=a.tie
+    ?`<div class="chibi-tie" style="background:${a.tie}"></div>`
+    :`<div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#ffd700;z-index:5"></div>`;
+
+  wrap.innerHTML=`
+  <div class="chibi walking" style="width:40px;height:72px;position:relative;cursor:pointer" onclick="this.parentElement.querySelector('.chibi-tooltip').style.display='block';setTimeout(()=>this.parentElement.querySelector('.chibi-tooltip').style.display='none',2000)">
+    ${hairHTML}
+    <div class="chibi-head" style="background:${a.type==='female-hijab'?a.skin:a.skin}">
+      <div class="chibi-blush left"></div><div class="chibi-blush right"></div>
+      <div class="chibi-eyes"><div class="chibi-eye"></div><div class="chibi-eye"></div></div>
+      <div class="chibi-mouth"></div>
+      <div class="chibi-status"></div>
+    </div>
+    <div class="chibi-neck" style="background:${a.skin}"></div>
+    <div class="chibi-body" style="background:${a.blazer}">
+      <div class="chibi-lapel-l" style="background:${lighten(a.blazer)}"></div>
+      <div class="chibi-lapel-r" style="background:${lighten(a.blazer)}"></div>
+      <div class="chibi-shirt"></div>
+      ${tieHTML}
+      <div class="chibi-badge"></div>
+    </div>
+    <div class="chibi-arm left" style="background:${a.blazer}"></div>
+    <div class="chibi-arm right" style="background:${a.blazer}"></div>
+    <div class="chibi-leg left" style="background:${isF?darken(a.blazer):'#12182e'}"></div>
+    <div class="chibi-leg right" style="background:${isF?darken(a.blazer):'#12182e'}"></div>
+    <div class="chibi-shoe left"></div>
+    <div class="chibi-shoe right"></div>
+    <div class="chibi-nametag">${a.name}</div>
+  </div>
+  <div class="chibi-tooltip" style="display:none">
+    <b>${a.name}</b>
+    <span>${a.role}</span>
+    <em>● Online · KLCC Office</em>
+  </div>`;
+  return wrap;
+}
+
+function lighten(hex){
+  if(!hex||hex[0]!=='#')return hex;
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.min(255,(n>>16)+40),g=Math.min(255,((n>>8)&0xff)+40),b=Math.min(255,(n&0xff)+40);
+  return '#'+((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');
+}
+function darken(hex){
+  if(!hex||hex[0]!=='#')return hex;
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.max(0,(n>>16)-30),g=Math.max(0,((n>>8)&0xff)-30),b=Math.max(0,(n&0xff)-30);
+  return '#'+((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');
+}
+
+// Create and attach agent elements
+const layer=document.getElementById('agents-layer');
+const agentEls=agentState.map(a=>{
+  const el=makeChibi(a);
+  layer.appendChild(el);
+  return el;
+});
+
+// Animate agents
+function animateAgents(){
+  agentState.forEach((a,i)=>{
+    a.x+=a.vx;a.y+=a.vy;
+    if(a.x<3){a.vx=Math.abs(a.vx);a.facing=1;}
+    if(a.x>55){a.vx=-Math.abs(a.vx);a.facing=-1;}
+    if(a.y<57){a.vy=Math.abs(a.vy);}
+    if(a.y>85){a.vy=-Math.abs(a.vy);}
+    if(Math.random()<0.008){
+      a.vx=(Math.random()-0.5)*0.15;a.vy=(Math.random()-0.5)*0.08;
+      a.facing=a.vx>=0?1:-1;
+    }
+    const el=agentEls[i];
+    el.style.left=a.x+'%';
+    el.style.top=a.y+'%';
+    el.style.transform=`scaleX(${a.facing})`;
+    el.querySelector('.chibi-nametag').style.transform=`scaleX(${a.facing})`;
+  });
+  requestAnimationFrame(animateAgents);
+}
+animateAgents();
+
+// AI PANEL
+window.toggleAI=function(){
+  const p=document.getElementById('ai-panel');
+  p.classList.toggle('open');
+};
+window.quickAsk=function(q){document.getElementById('ai-input').value=q;sendAI();};
+window.sendAI=async function(){
+  const inp=document.getElementById('ai-input');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  const btn=document.getElementById('ai-btn');btn.disabled=true;
+  addMsg('user',msg);
+  const leads=window._leads||[];
+  const prop=leads.filter(l=>l.module==='Property').length;
+  const loan=leads.filter(l=>l.module==='Loan').length;
+  const travel=leads.filter(l=>l.module==='Travel').length;
+  const closed=leads.filter(l=>l.status===3).length;
+  const sys=`Kamu adalah AISA, AI Agent AIS Group Malaysia (KLCC Office). Data pipeline: ${leads.length} leads (Property:${prop}, Loan:${loan}, Travel:${travel}, Selesai:${closed}). Target KPI: RM18K/bulan. Agents: Farid, Siti, Hazim, Aina. Director: Zack Mastermind. Jawab dalam BM, ringkas, profesional, gunakan data sebenar.`;
+  const tid='t'+Date.now();addTyping(tid);
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:800,system:sys,messages:[{role:'user',content:msg}]})});
+    const d=await r.json();removeTyping(tid);
+    addMsg('ai',d.content&&d.content[0]?d.content[0].text:'Maaf, ralat berlaku.');
+  }catch(e){removeTyping(tid);addMsg('ai','Tidak dapat sambung. Cuba semula. 🔌');}
+  btn.disabled=false;
+};
+function addMsg(role,text){
+  const box=document.getElementById('ai-messages');
+  const d=document.createElement('div');d.className='msg '+role;
+  const t=new Date();const ts=t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
+  d.innerHTML=`<div class="msg-bubble">${text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')}</div><div class="msg-time">${role==='ai'?'AISA':'Zack'} · ${ts}</div>`;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
+}
+function addTyping(id){
+  const box=document.getElementById('ai-messages');
+  const d=document.createElement('div');d.className='msg ai';d.id=id;
+  d.innerHTML='<div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
+}
+function removeTyping(id){const e=document.getElementById(id);if(e)e.remove();}
+
+// KANBAN
+window.renderKanban=function(){
+  const leads=window._leads||[];const f=window._filter||'all';
+  const list=f==='all'?leads:leads.filter(l=>l.module===f);
+  for(let i=0;i<4;i++){
+    const col=document.getElementById('col-'+i);const cnt=document.getElementById('cnt-'+i);if(!col)continue;
+    const items=list.filter(l=>l.status===i);if(cnt)cnt.textContent=items.length;col.innerHTML='';
+    items.forEach(l=>{
+      const tc=l.module==='Property'?'tag-prop':l.module==='Loan'?'tag-loan':'tag-travel';
+      const d=document.createElement('div');d.className='kan-card';
+      d.innerHTML=`<div class="kan-card-name">${l.name}</div><div class="kan-card-meta">${l.note||'—'}</div><div class="kan-card-footer"><span class="kan-tag ${tc}">${l.module}</span><div class="kan-card-actions">${l.status>0?`<button class="card-btn" onclick="moveLead('${l.id}',-1)">←</button>`:''} ${l.status<3?`<button class="card-btn" onclick="moveLead('${l.id}',1)">→</button>`:''}<button class="card-btn" onclick="editLead('${l.id}')">✎</button><button class="card-btn del" onclick="deleteLead('${l.id}')">✕</button></div></div>`;
+      col.appendChild(d);
+    });
+  }
+};
+window.filterLeads=function(t){window._filter=t;renderKanban();};
+window.setTab=function(el){document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');};
+window.updateStats=function(){
+  const l=window._leads||[];const g=id=>document.getElementById(id);
+  g('s-leads')&&(g('s-leads').textContent=l.length);
+  g('s-closed')&&(g('s-closed').textContent=l.filter(x=>x.status===3).length);
+  g('con-leads')&&(g('con-leads').textContent=l.length);
+  g('con-komisen')&&(g('con-komisen').textContent='RM '+(l.filter(x=>x.status===3).length*500).toLocaleString());
+  g('mod-prop-count')&&(g('mod-prop-count').textContent=l.filter(x=>x.module==='Property').length+' leads');
+  g('mod-loan-count')&&(g('mod-loan-count').textContent=l.filter(x=>x.module==='Loan').length+' leads');
+  g('mod-travel-count')&&(g('mod-travel-count').textContent=l.filter(x=>x.module==='Travel').length+' leads');
+};
+window.updateBars=function(){
+  const l=window._leads||[];const t=l.length||1;
+  const p=l.filter(x=>x.module==='Property').length;const ln=l.filter(x=>x.module==='Loan').length;const tr=l.filter(x=>x.module==='Travel').length;
+  const pct=n=>Math.round(n/t*100);const g=id=>document.getElementById(id);
+  g('bar-prop')&&(g('bar-prop').style.width=pct(p)+'%');g('bar-loan')&&(g('bar-loan').style.width=pct(ln)+'%');g('bar-travel')&&(g('bar-travel').style.width=pct(tr)+'%');
+  g('bnum-prop')&&(g('bnum-prop').textContent=p);g('bnum-loan')&&(g('bnum-loan').textContent=ln);g('bnum-travel')&&(g('bnum-travel').textContent=tr);
+};
+window.openAddModal=function(){
+  window._editId=null;document.getElementById('modal-title').textContent='Tambah Lead Baru';
+  ['f-name','f-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-module').value='Property';document.getElementById('f-status').value='0';
+  document.getElementById('modal-bg').classList.add('show');
+};
+window.closeModal=function(){document.getElementById('modal-bg').classList.remove('show');window._editId=null;};
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+window.showToast=function(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);};
+</script>
+</body>
+</html>
