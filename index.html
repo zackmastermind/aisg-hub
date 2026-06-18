@@ -1,1 +1,1202 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIS GROUP HUB</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#1a1208;color:#fff;overflow:hidden;height:100vh;width:100vw}
+#app{display:flex;height:100vh;width:100vw}
 
+/* SIDEBAR */
+#sidebar{width:190px;background:#0f0b06;border-right:1px solid #2a1f0e;display:flex;flex-direction:column;flex-shrink:0;z-index:10}
+.sidebar-logo{padding:14px 12px;border-bottom:1px solid #2a1f0e}
+.logo-wrap{display:flex;align-items:center;gap:9px}
+.logo-name{font-size:12.5px;font-weight:700;letter-spacing:1.5px;color:#f5e6c8}
+.logo-tagline{font-size:7px;color:#c8a96e;letter-spacing:1.5px;margin-top:1px}
+.nav{flex:1;padding:8px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;color:#5a4a2a;font-size:11.5px;transition:all 0.2s;border-left:2px solid transparent;user-select:none}
+.nav-item:hover{color:#c8a96e;background:rgba(200,169,110,0.06)}
+.nav-item.active{color:#f5e6c8;background:rgba(200,169,110,0.1);border-left-color:#c8a96e}
+.nav-item svg{width:14px;height:14px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2}
+.nav-section{padding:10px 12px 3px;font-size:8px;color:#2a1f0e;letter-spacing:2.5px;font-weight:600}
+.sidebar-bottom{padding:12px;border-top:1px solid #2a1f0e}
+.user-chip{display:flex;align-items:center;gap:8px}
+.user-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#c8a96e,#8B6914);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#0f0b06;flex-shrink:0}
+.user-name{font-size:11px;font-weight:600;color:#f5e6c8}
+.user-role{font-size:9px;color:#4a3a1a}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+#topbar{height:46px;background:#0f0b06;border-bottom:1px solid #2a1f0e;display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0}
+.topbar-title{font-size:12px;font-weight:600;color:#f5e6c8;flex:1}
+.status-badge{display:flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid #2a1f0e;border-radius:20px;font-size:10px;color:#5a4a2a;white-space:nowrap}
+.dot-on{width:5px;height:5px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.topbar-btn{padding:4px 11px;border-radius:5px;font-size:10.5px;cursor:pointer;border:1px solid #c8a96e;background:rgba(200,169,110,0.12);color:#c8a96e;transition:all 0.2s;font-family:inherit;white-space:nowrap}
+.topbar-btn:hover{background:#c8a96e;color:#0f0b06}
+.pending-dot{background:#ef4444;color:#fff;width:16px;height:16px;border-radius:50%;font-size:8px;display:none;align-items:center;justify-content:center;margin-left:2px}
+#content{flex:1;position:relative;overflow:hidden;min-height:0}
+
+/* ===== ISOMETRIC OFFICE ===== */
+#view-office{position:absolute;inset:0;display:block;overflow:hidden}
+
+/* ISO SCENE */
+.iso-viewport{position:absolute;inset:0;overflow:hidden;cursor:grab}
+.iso-viewport:active{cursor:grabbing}
+.iso-scene{
+  position:absolute;
+  transform-origin:center center;
+  transform:rotateX(60deg) rotateZ(-45deg);
+  transform-style:preserve-3d;
+}
+
+/* ROOM */
+.iso-room{
+  position:relative;
+  transform-style:preserve-3d;
+}
+
+/* FLOOR */
+.iso-floor{
+  position:absolute;
+  background:linear-gradient(135deg,#f2e8d5 0%,#e8d8b8 50%,#dcc8a0 100%);
+  box-shadow:inset 0 0 60px rgba(0,0,0,0.08);
+}
+/* Floor grid lines */
+.iso-floor::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(180,150,100,0.15) 60px),
+    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(180,150,100,0.15) 60px);
+}
+
+/* WALLS */
+.iso-wall-back-x{
+  position:absolute;
+  background:linear-gradient(180deg,#2d1f0e 0%,#3d2a14 100%);
+  transform-origin:bottom center;
+  transform:rotateX(-90deg);
+}
+.iso-wall-back-y{
+  position:absolute;
+  background:linear-gradient(180deg,#261808 0%,#3a2610 100%);
+  transform-origin:left center;
+  transform:rotateY(90deg) rotateX(0deg);
+}
+
+/* ISOMETRIC FURNITURE — each piece is a 3D box */
+.iso-obj{
+  position:absolute;
+  transform-style:preserve-3d;
+}
+/* Box faces */
+.face{position:absolute;transform-style:preserve-3d}
+.face-top{transform-origin:center bottom;transform:rotateX(-90deg)}
+.face-right{transform-origin:left center;transform:rotateY(90deg)}
+.face-front{transform-origin:center bottom}
+
+/* MODULE OVERLAY */
+.module-overlay{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:5px;z-index:20}
+.mod-card{background:rgba(15,11,6,0.92);border:1px solid #3a2a0e;border-radius:8px;padding:8px 11px;cursor:pointer;display:flex;align-items:center;gap:9px;min-width:125px;transition:all 0.2s;backdrop-filter:blur(8px)}
+.mod-card:hover{border-color:#c8a96e;background:rgba(200,169,110,0.15)}
+.mod-icon{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mod-icon svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2}
+.mod-title{font-size:11px;font-weight:600;color:#f5e6c8}
+.mod-count{font-size:9px;color:#5a4a2a}
+
+/* TOP HUD (like Hermes) */
+.hud-top{position:absolute;top:0;left:0;right:0;height:48px;display:flex;align-items:center;padding:0 14px;gap:10px;z-index:20}
+.hud-title{font-size:15px;font-weight:800;color:#c8a96e;letter-spacing:3px}
+.hud-badge{display:flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid rgba(200,169,110,0.3);border-radius:20px;font-size:10px;color:#c8a96e;background:rgba(15,11,6,0.8);backdrop-filter:blur(8px)}
+.hud-agents-count{display:flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid rgba(200,169,110,0.2);border-radius:20px;font-size:10px;color:#8a7a5a;background:rgba(15,11,6,0.8);backdrop-filter:blur(8px);cursor:pointer}
+.hud-agents-count:hover{border-color:#c8a96e;color:#c8a96e}
+.hud-right{margin-left:auto;display:flex;gap:6px}
+.hud-btn{width:34px;height:34px;border-radius:6px;border:1px solid #2a1f0e;background:rgba(15,11,6,0.8);color:#5a4a2a;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(8px)}
+.hud-btn:hover{border-color:#c8a96e;color:#c8a96e}
+.open-hq-btn{position:absolute;right:-1px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;padding:12px 6px;background:#c8a96e;color:#0f0b06;font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;border-radius:6px 0 0 6px;transition:all 0.2s}
+.open-hq-btn:hover{background:#e0c080}
+
+/* BOTTOM CONSOLE */
+.iso-console{position:absolute;bottom:0;left:0;right:0;height:44px;background:rgba(15,11,6,0.95);border-top:1px solid #2a1f0e;display:flex;align-items:center;padding:0 14px;gap:14px;z-index:20;backdrop-filter:blur(10px)}
+.console-lbl{font-size:8px;color:#c8a96e;letter-spacing:2.5px;font-weight:700}
+.console-stat{font-size:9.5px;color:#3a2a0e}
+.console-stat b{color:#8a7a5a}
+.console-btns{margin-left:auto;display:flex;gap:5px}
+.console-btn{padding:3px 9px;border-radius:4px;font-size:9px;cursor:pointer;border:1px solid #2a1f0e;background:transparent;color:#5a4a2a;transition:all 0.2s;font-family:inherit}
+.console-btn:hover{background:#c8a96e;border-color:#c8a96e;color:#0f0b06}
+
+/* AGENT AVATARS — isometric style */
+.iso-agent{
+  position:absolute;
+  transform-style:preserve-3d;
+  cursor:pointer;
+  z-index:30;
+}
+.iso-agent:hover .agent-info-bubble{display:block}
+.agent-info-bubble{
+  display:none;
+  position:absolute;
+  bottom:100%;
+  left:50%;
+  transform:translateX(-50%) rotateX(-60deg) rotateZ(45deg);
+  background:rgba(15,11,6,0.95);
+  border:1px solid rgba(200,169,110,0.5);
+  border-radius:8px;
+  padding:8px 12px;
+  white-space:nowrap;
+  z-index:50;
+  font-size:11px;
+  color:#f5e6c8;
+  pointer-events:none;
+  box-shadow:0 4px 16px rgba(0,0,0,0.5);
+  margin-bottom:8px;
+}
+.agent-info-bubble b{display:block;margin-bottom:2px}
+.agent-info-bubble span{color:#8a7a5a;font-size:9.5px;display:block}
+.agent-info-bubble em{color:#22c55e;font-size:9px}
+
+/* KANBAN */
+#view-kanban{position:absolute;inset:0;display:none;flex-direction:column;padding:14px;gap:10px;overflow:hidden;background:#1a1208}
+.kb-header{display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.kb-header h2{font-size:14px;font-weight:600;color:#f5e6c8}
+.ftabs{display:flex;gap:4px}
+.ftab{padding:3px 9px;border-radius:14px;font-size:10px;cursor:pointer;border:1px solid #2a1f0e;background:transparent;color:#5a4a2a;transition:all 0.2s;font-family:inherit}
+.ftab.active{background:#2a1f0e;color:#f5e6c8}
+.add-btn{margin-left:auto;padding:6px 13px;border-radius:7px;font-size:11px;cursor:pointer;border:none;background:#c8a96e;color:#0f0b06;font-weight:600;font-family:inherit}
+.add-btn:hover{background:#e0c080}
+.kb-cols{display:flex;gap:8px;flex:1;overflow-x:auto;min-height:0}
+.kb-col{flex:1;min-width:145px;background:#0f0b06;border:1px solid #2a1f0e;border-radius:9px;display:flex;flex-direction:column;overflow:hidden}
+.kb-col-h{padding:9px 11px;border-bottom:1px solid #2a1f0e;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.kb-col-t{font-size:9px;font-weight:600;color:#5a4a2a;text-transform:uppercase;letter-spacing:1.2px}
+.kb-cnt{background:#1a1208;color:#3a2a0e;padding:1px 6px;border-radius:8px;font-size:9px}
+.kb-cards{flex:1;overflow-y:auto;padding:7px}
+.kb-cards::-webkit-scrollbar{width:2px}
+.kb-cards::-webkit-scrollbar-thumb{background:#2a1f0e}
+.kb-card{background:#150f08;border:1px solid #2a1f0e;border-radius:7px;padding:9px 10px;margin-bottom:5px;cursor:pointer;transition:border-color 0.2s}
+.kb-card:hover{border-color:#c8a96e}
+.kb-card-n{font-size:11px;font-weight:600;color:#c8a96e;margin-bottom:2px}
+.kb-card-m{font-size:9px;color:#3a2a0e;margin-bottom:5px}
+.kb-card-f{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.kb-tag{padding:1px 6px;border-radius:8px;font-size:8px;font-weight:600}
+.t-prop{background:rgba(37,99,235,0.2);color:#60a5fa}
+.t-loan{background:rgba(22,163,74,0.2);color:#4ade80}
+.t-trav{background:rgba(147,51,234,0.2);color:#c084fc}
+.kb-acts{display:flex;gap:2px;opacity:0;transition:opacity 0.2s}
+.kb-card:hover .kb-acts{opacity:1}
+.cb{width:18px;height:18px;border-radius:3px;border:1px solid #2a1f0e;background:transparent;color:#5a4a2a;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1;font-family:inherit}
+.cb:hover{background:#c8a96e;border-color:#c8a96e;color:#0f0b06}
+.cb.del:hover{background:#dc2626;border-color:#dc2626;color:#fff}
+
+/* AGENTS VIEW */
+#view-agents{position:absolute;inset:0;display:none;flex-direction:column;padding:14px;gap:12px;overflow-y:auto;background:#1a1208}
+#view-agents h2{font-size:14px;font-weight:600;color:#f5e6c8;flex-shrink:0}
+.reg-box{background:#0f0b06;border:1px solid #c8a96e;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.reg-box a{font-size:11px;color:#c8a96e;word-break:break-all;flex:1}
+.copy-btn{padding:4px 10px;border-radius:5px;border:1px solid #c8a96e;background:transparent;color:#c8a96e;cursor:pointer;font-size:10px;font-family:inherit;white-space:nowrap}
+.copy-btn:hover{background:#c8a96e;color:#0f0b06}
+.sec-title{font-size:9px;color:#2a1f0e;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;flex-shrink:0}
+.agent-list{display:flex;flex-direction:column;gap:7px}
+.agent-row{background:#0f0b06;border:1px solid #2a1f0e;border-radius:8px;padding:11px 13px;display:flex;align-items:center;gap:11px}
+.agent-row.pending{border-color:rgba(239,68,68,0.4)}
+.agent-row-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.agent-row-name{font-size:12px;font-weight:600;color:#c8a96e}
+.agent-row-role{font-size:9.5px;color:#3a2a0e}
+.agent-row-actions{display:flex;gap:5px;margin-left:auto}
+.btn-approve{padding:4px 9px;border-radius:5px;border:none;background:#16a34a;color:#fff;cursor:pointer;font-size:9.5px;font-family:inherit}
+.btn-reject{padding:4px 9px;border-radius:5px;border:none;background:#dc2626;color:#fff;cursor:pointer;font-size:9.5px;font-family:inherit}
+.btn-remove{padding:4px 9px;border-radius:5px;border:1px solid #2a1f0e;background:transparent;color:#5a4a2a;cursor:pointer;font-size:9.5px;font-family:inherit}
+.btn-remove:hover{background:#dc2626;border-color:#dc2626;color:#fff}
+.pill-active{padding:2px 7px;border-radius:8px;font-size:8.5px;font-weight:600;background:rgba(34,197,94,0.12);color:#22c55e}
+.pill-pending{padding:2px 7px;border-radius:8px;font-size:8.5px;font-weight:600;background:rgba(239,68,68,0.12);color:#f87171}
+
+/* STATS */
+#view-stats{position:absolute;inset:0;display:none;flex-direction:column;padding:14px;gap:12px;overflow-y:auto;background:#1a1208}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;flex-shrink:0}
+.stat-card{background:#0f0b06;border:1px solid #2a1f0e;border-radius:9px;padding:13px 15px}
+.stat-label{font-size:9px;color:#3a2a0e;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.stat-val{font-size:24px;font-weight:700;color:#f5e6c8}
+.stat-sub{font-size:9px;color:#3a2a0e;margin-top:2px}
+.bar-card{background:#0f0b06;border:1px solid #2a1f0e;border-radius:9px;padding:13px 15px}
+.bar-title{font-size:9px;font-weight:600;color:#2a1f0e;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.bar-row{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.bar-nm{font-size:10px;color:#5a4a2a;width:55px;flex-shrink:0}
+.bar-track{flex:1;height:4px;background:#1a1208;border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.bar-num{font-size:10px;color:#5a4a2a;width:26px;text-align:right}
+
+/* AI PANEL */
+#ai-panel{position:absolute;right:0;top:0;bottom:0;width:295px;background:rgba(15,11,6,0.98);border-left:1px solid #2a1f0e;display:none;flex-direction:column;z-index:30;backdrop-filter:blur(12px)}
+#ai-panel.open{display:flex}
+.ai-hdr{padding:12px 13px;border-bottom:1px solid #2a1f0e;display:flex;align-items:center;gap:9px;flex-shrink:0}
+.ai-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#c8a96e,#8B6914);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;box-shadow:0 0 12px rgba(200,169,110,0.3)}
+.ai-nm{font-size:12px;font-weight:700;color:#f5e6c8}
+.ai-st{font-size:9px;color:#22c55e}
+.ai-x{margin-left:auto;background:none;border:none;color:#3a2a0e;cursor:pointer;font-size:15px;font-family:inherit}
+.ai-x:hover{color:#f5e6c8}
+.ai-msgs{flex:1;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:9px}
+.ai-msgs::-webkit-scrollbar{width:2px}
+.ai-msgs::-webkit-scrollbar-thumb{background:#2a1f0e}
+.msg{max-width:92%}
+.msg.ai{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.msg-bub{padding:8px 11px;border-radius:9px;font-size:11px;line-height:1.6}
+.msg.ai .msg-bub{background:#150f08;border:1px solid #2a1f0e;color:#a08060;border-radius:3px 9px 9px 9px}
+.msg.user .msg-bub{background:rgba(200,169,110,0.15);border:1px solid rgba(200,169,110,0.25);color:#f5e6c8;border-radius:9px 3px 9px 9px}
+.msg-t{font-size:8.5px;color:#1a1208;margin-top:2px;padding:0 4px}
+.msg.user .msg-t{text-align:right}
+.ai-qbtns{padding:7px 9px;border-top:1px solid #2a1f0e;display:flex;flex-wrap:wrap;gap:3px;flex-shrink:0}
+.qbtn{padding:3px 7px;border-radius:11px;border:1px solid #2a1f0e;background:transparent;color:#5a4a2a;font-size:9px;cursor:pointer;transition:all 0.2s;font-family:inherit}
+.qbtn:hover{border-color:#c8a96e;color:#c8a96e}
+.ai-input-row{padding:9px;border-top:1px solid #2a1f0e;display:flex;gap:6px;flex-shrink:0}
+.ai-inp{flex:1;background:#0a0705;border:1px solid #2a1f0e;border-radius:6px;padding:7px 10px;color:#f5e6c8;font-size:11px;outline:none;font-family:inherit;transition:border-color 0.2s}
+.ai-inp:focus{border-color:#c8a96e}
+.ai-send{width:34px;height:34px;border-radius:6px;border:none;background:#c8a96e;color:#0f0b06;cursor:pointer;font-size:14px;flex-shrink:0;font-family:inherit;transition:all 0.2s}
+.ai-send:hover{background:#e0c080}
+.ai-send:disabled{background:#2a1f0e;color:#3a2a0e;cursor:not-allowed}
+.tdots{display:flex;gap:4px;padding:4px 0}
+.tdots span{width:5px;height:5px;border-radius:50%;background:#c8a96e;animation:dB 1.2s infinite}
+.tdots span:nth-child(2){animation-delay:0.2s}
+.tdots span:nth-child(3){animation-delay:0.4s}
+@keyframes dB{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#0f0b06;border:1px solid #2a1f0e;border-radius:12px;padding:22px;width:350px;max-width:90vw}
+.modal-title{font-size:13.5px;font-weight:700;color:#f5e6c8;margin-bottom:15px}
+.form-group{margin-bottom:10px}
+.form-label{font-size:9px;color:#5a4a2a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block}
+.form-input,.form-select{width:100%;padding:8px 10px;background:#0a0705;border:1px solid #2a1f0e;border-radius:6px;color:#c8a96e;font-size:12px;outline:none;font-family:inherit;transition:border-color 0.2s}
+.form-input:focus,.form-select:focus{border-color:#c8a96e}
+.form-select option{background:#0f0b06}
+.modal-btns{display:flex;gap:7px;margin-top:15px;justify-content:flex-end}
+.btn-cancel{padding:7px 13px;border-radius:6px;border:1px solid #2a1f0e;background:transparent;color:#5a4a2a;cursor:pointer;font-size:11px;font-family:inherit}
+.btn-save{padding:7px 13px;border-radius:6px;border:none;background:#c8a96e;color:#0f0b06;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit}
+.btn-save:hover{background:#e0c080}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);background:#c8a96e;color:#0f0b06;padding:9px 18px;border-radius:7px;font-size:11px;z-index:200;opacity:0;transition:all 0.3s;white-space:nowrap;font-weight:600}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrap">
+        <svg width="32" height="32" viewBox="0 0 40 40" fill="none" style="flex-shrink:0">
+          <circle cx="20" cy="20" r="19" stroke="#c8a96e" stroke-width="1.5"/>
+          <path d="M20 8L28 14L28 26L20 32L12 26L12 14Z" stroke="#f5e6c8" stroke-width="1.5" fill="none"/>
+          <circle cx="13" cy="20" r="3.5" fill="#c8a96e"/>
+          <circle cx="27" cy="20" r="3.5" fill="#8B6914"/>
+        </svg>
+        <div><div class="logo-name">AIS GROUP</div><div class="logo-tagline">ACHIEVER · INFINITE · SUCCESS</div></div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">MAIN</div>
+      <div class="nav-item active" onclick="switchView('office',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>Office</div>
+      <div class="nav-item" onclick="switchView('kanban',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="3" width="4" height="12" rx="1"/><rect x="17" y="3" width="4" height="15" rx="1"/></svg>Pipeline</div>
+      <div class="nav-item" onclick="switchView('stats',this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Dashboard</div>
+      <div class="nav-section">MODUL</div>
+      <div class="nav-item" onclick="switchView('kanban',this);setTimeout(()=>filterLeads('Property'),50)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Property</div>
+      <div class="nav-item" onclick="switchView('kanban',this);setTimeout(()=>filterLeads('Loan'),50)"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Loan</div>
+      <div class="nav-item" onclick="switchView('kanban',this);setTimeout(()=>filterLeads('Travel'),50)"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>Travel</div>
+      <div class="nav-section">SYSTEM</div>
+      <div class="nav-item" id="nav-agents" onclick="switchView('agents',this)" style="position:relative">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Agents
+        <div class="pending-dot" id="pending-dot">0</div>
+      </div>
+      <div class="nav-item" onclick="toggleAI()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83"/></svg>AI Agent</div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-av">ZM</div>
+        <div><div class="user-name">Zack Mastermind</div><div class="user-role">Director · AIS Group</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <span class="topbar-title" id="topbar-title">AIS GROUP — Virtual HQ</span>
+      <div class="status-badge"><div class="dot-on"></div><span id="agents-count-badge">0 Online</span></div>
+      <button class="topbar-btn" onclick="toggleAI()">🤖 AISA</button>
+      <button class="topbar-btn" onclick="openAddModal()">+ Lead</button>
+    </div>
+    <div id="content">
+
+      <!-- ISOMETRIC OFFICE -->
+      <div id="view-office">
+        <!-- HUD overlay (like Hermes) -->
+        <div class="hud-top">
+          <span class="hud-title">AIS GROUP</span>
+          <div class="hud-badge">🏢 AIS GROUP · CONNECTED</div>
+          <div class="hud-agents-count" onclick="switchView('agents',null)" id="hud-agents">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <span id="hud-agent-count">0 AGENTS</span>
+          </div>
+          <div class="hud-right">
+            <button class="hud-btn" onclick="toggleAI()" title="AI Agent">🤖</button>
+            <button class="hud-btn" onclick="openAddModal()" title="Add Lead">+</button>
+            <button class="hud-btn" onclick="switchView('kanban',null)" title="Pipeline">📋</button>
+            <button class="hud-btn" onclick="switchView('stats',null)" title="Stats">📊</button>
+          </div>
+        </div>
+
+        <!-- Module cards -->
+        <div class="module-overlay" style="top:58px">
+          <div class="mod-card" onclick="switchView('kanban',null);setTimeout(()=>filterLeads('Property'),50)">
+            <div class="mod-icon" style="background:#2563eb"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+            <div><div class="mod-title">Property</div><div class="mod-count" id="mod-prop-count">0 leads</div></div>
+          </div>
+          <div class="mod-card" onclick="switchView('kanban',null);setTimeout(()=>filterLeads('Loan'),50)">
+            <div class="mod-icon" style="background:#16a34a"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+            <div><div class="mod-title">Loan</div><div class="mod-count" id="mod-loan-count">0 leads</div></div>
+          </div>
+          <div class="mod-card" onclick="switchView('kanban',null);setTimeout(()=>filterLeads('Travel'),50)">
+            <div class="mod-icon" style="background:#9333ea"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></div>
+            <div><div class="mod-title">Travel</div><div class="mod-count" id="mod-travel-count">0 leads</div></div>
+          </div>
+        </div>
+
+        <!-- OPEN HQ side button -->
+        <div class="open-hq-btn" onclick="switchView('agents',null)">OPEN HQ</div>
+
+        <!-- ISO VIEWPORT -->
+        <div class="iso-viewport" id="iso-vp">
+          <canvas id="iso-canvas" style="position:absolute;top:0;left:0"></canvas>
+          <!-- Agents layer (HTML positioned) -->
+          <div id="agents-iso-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none"></div>
+        </div>
+
+        <!-- CONSOLE -->
+        <div class="iso-console">
+          <span class="console-lbl">AIS HQ</span>
+          <span class="console-stat">LEADS <b id="con-leads">0</b></span>
+          <span class="console-stat">AGENTS <b id="con-agents">0</b></span>
+          <span class="console-stat">KOMISEN <b id="con-komisen">RM 0</b></span>
+          <div class="console-btns">
+            <button class="console-btn" onclick="openAddModal()">+ Lead</button>
+            <button class="console-btn" onclick="toggleAI()">🤖 AISA</button>
+            <button class="console-btn" onclick="switchView('stats',null)">📊 Stats</button>
+          </div>
+        </div>
+
+        <!-- AI PANEL -->
+        <div id="ai-panel">
+          <div class="ai-hdr">
+            <div class="ai-av">🤖</div>
+            <div><div class="ai-nm">AISA — AI Agent</div><div class="ai-st">● Online · AIS Group</div></div>
+            <button class="ai-x" onclick="toggleAI()">✕</button>
+          </div>
+          <div class="ai-msgs" id="ai-msgs">
+            <div class="msg ai"><div class="msg-bub">Salam Zack! Saya <b>AISA</b> 🤖 — AI Agent AIS Group anda. Apa yang boleh saya bantu? ✨</div><div class="msg-t">AISA · Sekarang</div></div>
+          </div>
+          <div class="ai-qbtns">
+            <button class="qbtn" onclick="quickAsk('Analisa pipeline leads saya sekarang')">📊 Analisa</button>
+            <button class="qbtn" onclick="quickAsk('Cadang strategi follow-up terbaik')">💬 Follow-up</button>
+            <button class="qbtn" onclick="quickAsk('Tips close deal property Malaysia')">🏠 Tips</button>
+            <button class="qbtn" onclick="quickAsk('Strategi capai KPI RM18K bulan ini')">🎯 KPI</button>
+          </div>
+          <div class="ai-input-row">
+            <input class="ai-inp" id="ai-inp" placeholder="Tanya AISA..." onkeydown="if(event.key==='Enter')sendAI()">
+            <button class="ai-send" id="ai-btn" onclick="sendAI()">➤</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KANBAN -->
+      <div id="view-kanban">
+        <div class="kb-header"><h2>Sales Pipeline</h2>
+          <div class="ftabs">
+            <button class="ftab active" onclick="filterLeads('all');setTab(this)">Semua</button>
+            <button class="ftab" onclick="filterLeads('Property');setTab(this)">🏠 Property</button>
+            <button class="ftab" onclick="filterLeads('Loan');setTab(this)">💳 Loan</button>
+            <button class="ftab" onclick="filterLeads('Travel');setTab(this)">✈️ Travel</button>
+          </div>
+          <button class="add-btn" onclick="openAddModal()">+ Tambah Lead</button>
+        </div>
+        <div class="kb-cols">
+          <div class="kb-col"><div class="kb-col-h"><span class="kb-col-t">Prospek</span><span class="kb-cnt" id="cnt-0">0</span></div><div class="kb-cards" id="col-0"></div></div>
+          <div class="kb-col"><div class="kb-col-h"><span class="kb-col-t">Susulan</span><span class="kb-cnt" id="cnt-1">0</span></div><div class="kb-cards" id="col-1"></div></div>
+          <div class="kb-col"><div class="kb-col-h"><span class="kb-col-t">Dalam Proses</span><span class="kb-cnt" id="cnt-2">0</span></div><div class="kb-cards" id="col-2"></div></div>
+          <div class="kb-col"><div class="kb-col-h"><span class="kb-col-t">Selesai ✓</span><span class="kb-cnt" id="cnt-3">0</span></div><div class="kb-cards" id="col-3"></div></div>
+        </div>
+      </div>
+
+      <!-- AGENTS -->
+      <div id="view-agents">
+        <h2>👥 Pengurusan Agents</h2>
+        <div class="reg-box">
+          <span style="font-size:11px;color:#3a2a0e">🔗 Link daftar agent:</span>
+          <a id="reg-link" href="#">Klik untuk buka</a>
+          <button class="copy-btn" onclick="copyLink()">📋 Copy</button>
+        </div>
+        <div class="sec-title">⏳ MENUNGGU KELULUSAN</div>
+        <div class="agent-list" id="pending-list"><div style="color:#2a1f0e;font-size:11px;padding:8px">Tiada permohonan.</div></div>
+        <div class="sec-title">✅ AGENTS AKTIF</div>
+        <div class="agent-list" id="active-list"><div style="color:#2a1f0e;font-size:11px;padding:8px">Tiada agents lagi.</div></div>
+      </div>
+
+      <!-- STATS -->
+      <div id="view-stats">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">Jumlah Leads</div><div class="stat-val" id="s-leads">0</div><div class="stat-sub">Pipeline aktif</div></div>
+          <div class="stat-card"><div class="stat-label">Selesai</div><div class="stat-val" id="s-closed">0</div><div class="stat-sub" style="color:#22c55e">✓ Converted</div></div>
+          <div class="stat-card"><div class="stat-label">Agents</div><div class="stat-val" id="s-agents">0</div><div class="stat-sub">Aktif</div></div>
+          <div class="stat-card"><div class="stat-label">KPI Target</div><div class="stat-val">RM18K</div><div class="stat-sub">Bulanan</div></div>
+        </div>
+        <div class="bar-card">
+          <div class="bar-title">Prestasi Modul</div>
+          <div class="bar-row"><div class="bar-nm">Property</div><div class="bar-track"><div class="bar-fill" id="bar-prop" style="width:0%;background:#2563eb"></div></div><div class="bar-num" id="bnum-prop">0</div></div>
+          <div class="bar-row"><div class="bar-nm">Loan</div><div class="bar-track"><div class="bar-fill" id="bar-loan" style="width:0%;background:#16a34a"></div></div><div class="bar-num" id="bnum-loan">0</div></div>
+          <div class="bar-row"><div class="bar-nm">Travel</div><div class="bar-track"><div class="bar-fill" id="bar-travel" style="width:0%;background:#9333ea"></div></div><div class="bar-num" id="bnum-travel">0</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Tambah Lead Baru</div>
+    <div class="form-group"><label class="form-label">Nama</label><input class="form-input" id="f-name" placeholder="Ahmad bin Ali" type="text"></div>
+    <div class="form-group"><label class="form-label">Modul</label><select class="form-select" id="f-module"><option value="Property">🏠 Property</option><option value="Loan">💳 Loan</option><option value="Travel">✈️ Travel</option></select></div>
+    <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="f-note" placeholder="Lagenda Properties, Loan RM50K..." type="text"></div>
+    <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="f-status"><option value="0">Prospek</option><option value="1">Susulan</option><option value="2">Dalam Proses</option><option value="3">Selesai</option></select></div>
+    <div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Batal</button><button class="btn-save" onclick="saveLead()">Simpan</button></div>
+  </div>
+</div>
+<div class="modal-bg" id="reg-modal">
+  <div class="modal" style="width:400px">
+    <div class="modal-title">📝 Daftar Agent AIS Group</div>
+    <div class="form-group"><label class="form-label">Nama Penuh</label><input class="form-input" id="reg-name" placeholder="Nama penuh" type="text"></div>
+    <div class="form-group"><label class="form-label">No. Telefon</label><input class="form-input" id="reg-phone" placeholder="0123456789" type="tel"></div>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="reg-email" placeholder="email@example.com" type="email"></div>
+    <div class="form-group"><label class="form-label">Modul</label><select class="form-select" id="reg-module"><option value="Property">🏠 Property</option><option value="Loan">💳 Loan</option><option value="Travel">✈️ Travel</option><option value="Property,Loan">Property + Loan</option><option value="All">🌟 Semua</option></select></div>
+    <div class="form-group"><label class="form-label">Pengalaman</label><select class="form-select" id="reg-exp"><option value="Baru">Baru</option><option value="1-2 tahun">1-2 tahun</option><option value="3-5 tahun">3-5 tahun</option><option value="5+ tahun">5+ tahun</option></select></div>
+    <div class="modal-btns"><button class="btn-cancel" onclick="document.getElementById('reg-modal').classList.remove('show')">Batal</button><button class="btn-save" onclick="submitReg()">Hantar</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const app=initializeApp({apiKey:"AIzaSyDijLtHtVjhThzwBWWnRMbPlLO2q2qeMGo",authDomain:"aisg-85b4a.firebaseapp.com",projectId:"aisg-85b4a",storageBucket:"aisg-85b4a.firebasestorage.app",messagingSenderId:"359928809200",appId:"1:359928809200:web:1bd1256aa9e8a5b93de435"});
+const db=getFirestore(app);
+const leadsRef=collection(db,'leads');
+const agentsRef=collection(db,'agents');
+window._leads=[];window._agents=[];window._editId=null;window._filter='all';
+
+onSnapshot(leadsRef,snap=>{window._leads=snap.docs.map(d=>({id:d.id,...d.data()}));renderKanban();updateStats();});
+onSnapshot(agentsRef,snap=>{window._agents=snap.docs.map(d=>({id:d.id,...d.data()}));renderAgentsList();updateAgentCount();drawISO();});
+
+window.saveLead=async function(){
+  const name=document.getElementById('f-name').value.trim();const mod=document.getElementById('f-module').value;
+  const note=document.getElementById('f-note').value.trim();const status=parseInt(document.getElementById('f-status').value);
+  if(!name){showToast('Sila isi nama!');return;}
+  try{
+    if(window._editId){await updateDoc(doc(db,'leads',window._editId),{name,module:mod,note,status});showToast('✓ Dikemaskini');}
+    else{await addDoc(leadsRef,{name,module:mod,note,status,createdAt:Date.now()});showToast('✓ Lead ditambah!');}
+    closeModal();
+  }catch(e){showToast('Error: '+e.message);}
+};
+window.deleteLead=async function(id){if(!confirm('Padam?'))return;await deleteDoc(doc(db,'leads',id));showToast('Dipadam');};
+window.editLead=function(id){
+  const l=window._leads.find(x=>x.id===id);if(!l)return;window._editId=id;
+  document.getElementById('modal-title').textContent='Edit Lead';
+  document.getElementById('f-name').value=l.name;document.getElementById('f-module').value=l.module;
+  document.getElementById('f-note').value=l.note||'';document.getElementById('f-status').value=l.status;
+  document.getElementById('modal-bg').classList.add('show');
+};
+window.moveLead=async function(id,dir){const l=window._leads.find(x=>x.id===id);if(!l)return;await updateDoc(doc(db,'leads',id),{status:Math.max(0,Math.min(3,l.status+dir))});};
+window.submitReg=async function(){
+  const name=document.getElementById('reg-name').value.trim();const phone=document.getElementById('reg-phone').value.trim();
+  const email=document.getElementById('reg-email').value.trim();const module=document.getElementById('reg-module').value;
+  const exp=document.getElementById('reg-exp').value;
+  if(!name||!phone){showToast('Sila isi nama & telefon!');return;}
+  const colors=['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#c8a96e'];
+  const color=colors[Math.floor(Math.random()*colors.length)];
+  const initials=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  await addDoc(agentsRef,{name,phone,email,module,experience:exp,status:'pending',color,initials,createdAt:Date.now()});
+  showToast('✓ Permohonan dihantar! Tunggu kelulusan.');
+  document.getElementById('reg-modal').classList.remove('show');
+};
+window.approveAgent=async function(id){await updateDoc(doc(db,'agents',id),{status:'active'});showToast('✓ Agent diluluskan!');};
+window.rejectAgent=async function(id){await deleteDoc(doc(db,'agents',id));showToast('Ditolak');};
+window.removeAgent=async function(id){if(!confirm('Padam agent?'))return;await deleteDoc(doc(db,'agents',id));showToast('Agent dipadam');};
+</script>
+
+<script>
+// ===== VIEWS =====
+function switchView(name,navEl){
+  ['office','kanban','agents','stats'].forEach(v=>{const el=document.getElementById('view-'+v);if(el)el.style.display='none';});
+  const v=document.getElementById('view-'+name);
+  if(v){if(name==='office')v.style.display='block';else{v.style.display='flex';v.style.flexDirection='column';}}
+  if(name==='office')setTimeout(drawISO,100);
+  if(name==='stats')setTimeout(updateBars,150);
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(navEl)navEl.classList.add('active');
+  const t={office:'AIS GROUP — Virtual HQ',kanban:'Sales Pipeline',agents:'Pengurusan Agents',stats:'Dashboard'};
+  document.getElementById('topbar-title').textContent=t[name]||'AIS Group';
+}
+
+// REG LINK
+document.getElementById('reg-link').href=location.href.split('?')[0]+'?register=1';
+window.copyLink=function(){navigator.clipboard.writeText(location.href.split('?')[0]+'?register=1').then(()=>showToast('✓ Link disalin!')).catch(()=>showToast('Gagal copy'));};
+if(location.search.includes('register=1'))setTimeout(()=>document.getElementById('reg-modal').classList.add('show'),500);
+
+// AGENTS
+window.updateAgentCount=function(){
+  const active=(window._agents||[]).filter(a=>a.status==='active').length;
+  const pending=(window._agents||[]).filter(a=>a.status==='pending').length;
+  document.getElementById('agents-count-badge').textContent=active+' Online';
+  document.getElementById('con-agents').textContent=active;
+  document.getElementById('hud-agent-count').textContent=active+' AGENTS';
+  if(document.getElementById('s-agents'))document.getElementById('s-agents').textContent=active;
+  const dot=document.getElementById('pending-dot');
+  dot.style.display=pending>0?'flex':'none';
+  dot.textContent=pending;
+};
+window.renderAgentsList=function(){
+  const agents=window._agents||[];
+  const pending=agents.filter(a=>a.status==='pending');
+  const active=agents.filter(a=>a.status==='active');
+  const pList=document.getElementById('pending-list');
+  const aList=document.getElementById('active-list');
+  if(!pList||!aList)return;
+  pList.innerHTML=pending.length?'':'<div style="color:#2a1f0e;font-size:11px;padding:8px">Tiada permohonan.</div>';
+  pending.forEach(a=>{const r=document.createElement('div');r.className='agent-row pending';r.innerHTML=`<div class="agent-row-av" style="background:${a.color||'#c8a96e'}">${a.initials||'AG'}</div><div style="flex:1"><div class="agent-row-name">${a.name}</div><div class="agent-row-role">${a.phone} · ${a.module}</div></div><span class="pill-pending">Pending</span><div class="agent-row-actions"><button class="btn-approve" onclick="approveAgent('${a.id}')">✓ Lulus</button><button class="btn-reject" onclick="rejectAgent('${a.id}')">✕</button></div>`;pList.appendChild(r);});
+  aList.innerHTML=active.length?'':'<div style="color:#2a1f0e;font-size:11px;padding:8px">Tiada agents aktif.</div>';
+  active.forEach(a=>{const r=document.createElement('div');r.className='agent-row';r.innerHTML=`<div class="agent-row-av" style="background:${a.color||'#c8a96e'}">${a.initials||'AG'}</div><div style="flex:1"><div class="agent-row-name">${a.name}</div><div class="agent-row-role">${a.module} · ${a.experience||''}</div></div><span class="pill-active">Aktif</span><div class="agent-row-actions"><button class="btn-remove" onclick="removeAgent('${a.id}')">Padam</button></div>`;aList.appendChild(r);});
+};
+
+// ===== ISOMETRIC CANVAS ENGINE =====
+const canvas=document.getElementById('iso-canvas');
+const ctx=canvas.getContext('2d');
+let W=0,H=0,rafId=null,tick=0;
+
+// ISO math
+const TILE=64;
+const ISO_ANGLE=Math.PI/6;
+
+function isoToScreen(ix,iy,iz){
+  // Classic isometric projection
+  const sx=( ix-iy)*TILE*Math.cos(ISO_ANGLE);
+  const sy=( ix+iy)*TILE*Math.sin(ISO_ANGLE)-iz*TILE*0.8;
+  return{x:sx,y:sy};
+}
+
+// Room config
+const ROOM_W=12,ROOM_H=10,WALL_H=3;
+
+// Furniture definitions [ix, iy, w, h, hgt, topColor, frontColor, rightColor, label]
+const FURNITURE=[
+  // Desks (w x h x height)
+  [1,1,2,1.2,0.7,'#c8a070','#a06828','#8B5A1A','Farid'],
+  [1,3,2,1.2,0.7,'#c8a070','#a06828','#8B5A1A','Siti'],
+  [4,1,2,1.2,0.7,'#c8a070','#a06828','#8B5A1A','Hazim'],
+  [4,3,2,1.2,0.7,'#c8a070','#a06828','#8B5A1A','Aina'],
+  [4,5,2,1.2,0.7,'#c8a070','#a06828','#8B5A1A','Zack'],
+  // Round table (meeting)
+  [7.5,3.5,2,2,0.75,'#c8a96e','#9a7840','#8B6914',''],
+  // Sofas
+  [1,7,2.5,1,0.6,'#e8908a','#c05858','#a04040',''],
+  [4,7,2.5,1,0.6,'#8ab0e8','#5878c0','#3858a0',''],
+  // Bookshelf
+  [9.5,1,0.6,2.5,1.6,'#8B6914','#5a3a0a','#4a2a06',''],
+  // Ping pong
+  [1,8.5,2.5,1.2,0.8,'#2d8a2d','#1a5a1a','#156015',''],
+  // Water cooler
+  [8.5,6,0.7,0.7,1.4,'#d0e8ff','#88aad0','#6688b0',''],
+  // Plant 1
+  [0.2,5,0.8,0.8,1.2,'#3a9038','#2a6028','#1a4018',''],
+  // Plant 2
+  [10.5,8,0.8,0.8,1.2,'#3a9038','#2a6028','#1a4018',''],
+  // Coffee station
+  [9,7.5,1,1,1,'#5a3a0a','#3a2006','#2a1504',''],
+];
+
+// Monitor on desks
+const MONITORS=[
+  [2.2,1.3,0.15],[2.2,3.3,0.15],[5.2,1.3,0.15],[5.2,3.3,0.15],[5.2,5.3,0.15]
+];
+
+// Chair positions
+const CHAIRS=[
+  [2,2.4],[2,4.4],[5,2.4],[5,4.4],[5,6.4],
+  [7,4],[8,4],[7.5,2.8],[8.5,2.8],[7.5,5.2],[8.5,5.2]
+];
+
+// Agent walk state
+const agentWalkState={};
+
+function getAgentWalk(id,i){
+  if(!agentWalkState[id]){
+    agentWalkState[id]={
+      x:2+((i*2.5)%8),y:5+((i*1.8)%4),
+      vx:(Math.random()-0.5)*0.025,vy:(Math.random()-0.5)*0.015,
+      facing:Math.random()>0.5?1:-1
+    };
+  }
+  return agentWalkState[id];
+}
+
+function initCanvas(){
+  const vp=document.getElementById('iso-vp');
+  W=vp.clientWidth;H=vp.clientHeight-44;
+  canvas.width=W;canvas.height=H;
+}
+
+// Camera offset (centered)
+let camX=0,camY=0;
+
+function worldCenter(){
+  const c1=isoToScreen(0,0,0);
+  const c2=isoToScreen(ROOM_W,ROOM_H,0);
+  return{x:(c1.x+c2.x)/2,y:(c1.y+c2.y)/2};
+}
+
+function drawFloor(){
+  ctx.save();
+  // Draw each floor tile
+  for(let ix=0;ix<ROOM_W;ix++){
+    for(let iy=0;iy<ROOM_H;iy++){
+      const tl=isoToScreen(ix,iy,0);
+      const tr=isoToScreen(ix+1,iy,0);
+      const br=isoToScreen(ix+1,iy+1,0);
+      const bl=isoToScreen(ix,iy+1,0);
+      // Checkerboard subtle
+      const shade=(ix+iy)%2===0?'#f2e8d5':'#ecdcc0';
+      ctx.beginPath();
+      ctx.moveTo(tl.x,tl.y);ctx.lineTo(tr.x,tr.y);ctx.lineTo(br.x,br.y);ctx.lineTo(bl.x,bl.y);
+      ctx.closePath();
+      ctx.fillStyle=shade;ctx.fill();
+      ctx.strokeStyle='rgba(180,150,100,0.2)';ctx.lineWidth=0.5;ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawWalls(){
+  ctx.save();
+  // Back wall X (along Y axis)
+  for(let iy=0;iy<ROOM_H;iy++){
+    const b1=isoToScreen(0,iy,0);
+    const b2=isoToScreen(0,iy+1,0);
+    const t2=isoToScreen(0,iy+1,WALL_H);
+    const t1=isoToScreen(0,iy,WALL_H);
+    const g=ctx.createLinearGradient(b1.x,b1.y,t1.x,t1.y);
+    g.addColorStop(0,'#2d2010');g.addColorStop(1,'#4a3018');
+    ctx.beginPath();ctx.moveTo(b1.x,b1.y);ctx.lineTo(b2.x,b2.y);ctx.lineTo(t2.x,t2.y);ctx.lineTo(t1.x,t1.y);ctx.closePath();
+    ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=0.5;ctx.stroke();
+  }
+  // Back wall Y (along X axis)
+  for(let ix=0;ix<ROOM_W;ix++){
+    const b1=isoToScreen(ix,0,0);
+    const b2=isoToScreen(ix+1,0,0);
+    const t2=isoToScreen(ix+1,0,WALL_H);
+    const t1=isoToScreen(ix,0,WALL_H);
+    const g=ctx.createLinearGradient(b1.x,b1.y,t1.x,t1.y);
+    g.addColorStop(0,'#231808');g.addColorStop(1,'#3a2810');
+    ctx.beginPath();ctx.moveTo(b1.x,b1.y);ctx.lineTo(b2.x,b2.y);ctx.lineTo(t2.x,t2.y);ctx.lineTo(t1.x,t1.y);ctx.closePath();
+    ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=0.5;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawBox(ix,iy,iw,id,ih,topC,frontC,rightC){
+  const pts={
+    // Top face corners
+    tfl:isoToScreen(ix,iy+id,ih),
+    tfr:isoToScreen(ix+iw,iy+id,ih),
+    tbr:isoToScreen(ix+iw,iy,ih),
+    tbl:isoToScreen(ix,iy,ih),
+    // Bottom face corners (z=0)
+    bfl:isoToScreen(ix,iy+id,0),
+    bfr:isoToScreen(ix+iw,iy+id,0),
+    bbr:isoToScreen(ix+iw,iy,0),
+    bbl:isoToScreen(ix,iy,0),
+  };
+  // Front face (iy side)
+  ctx.beginPath();ctx.moveTo(pts.bfl.x,pts.bfl.y);ctx.lineTo(pts.bfr.x,pts.bfr.y);ctx.lineTo(pts.tfr.x,pts.tfr.y);ctx.lineTo(pts.tfl.x,pts.tfl.y);ctx.closePath();
+  ctx.fillStyle=frontC;ctx.fill();ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=0.5;ctx.stroke();
+  // Right face (ix side)
+  ctx.beginPath();ctx.moveTo(pts.bfr.x,pts.bfr.y);ctx.lineTo(pts.bbr.x,pts.bbr.y);ctx.lineTo(pts.tbr.x,pts.tbr.y);ctx.lineTo(pts.tfr.x,pts.tfr.y);ctx.closePath();
+  ctx.fillStyle=rightC;ctx.fill();ctx.stroke();
+  // Top face
+  ctx.beginPath();ctx.moveTo(pts.tfl.x,pts.tfl.y);ctx.lineTo(pts.tfr.x,pts.tfr.y);ctx.lineTo(pts.tbr.x,pts.tbr.y);ctx.lineTo(pts.tbl.x,pts.tbl.y);ctx.closePath();
+  ctx.fillStyle=topC;ctx.fill();ctx.stroke();
+}
+
+function drawChair(ix,iy){
+  // Seat
+  drawBox(ix-0.3,iy-0.3,0.6,0.6,0.45,'#7a5a4a','#5a3a2a','#4a2a18');
+  // Back
+  drawBox(ix-0.3,iy-0.35,0.6,0.1,0.9,'#6a4a3a','#5a3a2a','#4a2a18');
+  // Legs (4 thin boxes)
+  [[ix-0.25,iy-0.25],[ix+0.15,iy-0.25],[ix-0.25,iy+0.15],[ix+0.15,iy+0.15]].forEach(([cx,cy])=>{
+    drawBox(cx,cy,0.08,0.08,0.4,'#3a2a18','#2a1a0e','#1a1008');
+  });
+}
+
+function drawMonitor(ix,iy){
+  // Screen
+  drawBox(ix,iy,0.5,0.08,0.5,'#1a3060','#0a1830','#081020');
+  // Stand
+  drawBox(ix+0.18,iy,0.14,0.06,0.3,'#333','#222','#111');
+  // Base
+  drawBox(ix+0.08,iy-0.1,0.34,0.14,0.25,'#444','#333','#222');
+}
+
+function drawWallDecor(){
+  // Windows on back wall X
+  [[3,2],[3,5],[3,8]].forEach(([ix,iz])=>{
+    const b=isoToScreen(0,ix,iz);const t=isoToScreen(0,ix+2,iz+1.5);
+    const tl=isoToScreen(0,ix,iz+1.5);const tr=isoToScreen(0,ix+2,iz);
+    // Window frame
+    ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(tr.x,tr.y);ctx.lineTo(t.x,t.y);ctx.lineTo(tl.x,tl.y);ctx.closePath();
+    ctx.fillStyle='rgba(135,200,235,0.4)';ctx.fill();
+    ctx.strokeStyle='#8B6914';ctx.lineWidth=2;ctx.stroke();
+  });
+  // Wall art on back wall Y
+  const wa=isoToScreen(5,0,2);const wa2=isoToScreen(7,0,2);
+  ctx.beginPath();ctx.moveTo(wa.x,wa.y);
+  ctx.lineTo(isoToScreen(7,0,2).x,isoToScreen(7,0,2).y);
+  ctx.lineTo(isoToScreen(7,0,2.8).x,isoToScreen(7,0,2.8).y);
+  ctx.lineTo(isoToScreen(5,0,2.8).x,isoToScreen(5,0,2.8).y);
+  ctx.closePath();
+  // AIS neon sign
+  const g=ctx.createLinearGradient(wa.x,wa.y,wa2.x,wa2.y);
+  g.addColorStop(0,'rgba(200,169,110,0.6)');g.addColorStop(1,'rgba(200,169,110,0.3)');
+  ctx.fillStyle=g;ctx.fill();
+  ctx.strokeStyle='rgba(200,169,110,0.8)';ctx.lineWidth=1.5;ctx.stroke();
+  // Text on sign
+  const mid=isoToScreen(6,0,2.4);
+  ctx.save();
+  ctx.translate(mid.x,mid.y);
+  // counter-rotate for iso
+  const ang=Math.atan2(isoToScreen(7,0,0).y-isoToScreen(5,0,0).y,isoToScreen(7,0,0).x-isoToScreen(5,0,0).x);
+  ctx.rotate(ang);
+  ctx.fillStyle='rgba(200,169,110,0.9)';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('AIS GROUP',0,-2);
+  ctx.restore();
+  // Ceiling lights (pendant)
+  [[3,4],[6,2],[9,6]].forEach(([ix,iy])=>{
+    const top=isoToScreen(ix,iy,WALL_H);
+    const bot=isoToScreen(ix,iy,WALL_H-0.5);
+    ctx.beginPath();ctx.moveTo(top.x,top.y);ctx.lineTo(bot.x,bot.y);ctx.strokeStyle='#555';ctx.lineWidth=1;ctx.stroke();
+    // Light bulb glow
+    ctx.beginPath();ctx.arc(bot.x,bot.y,4,0,Math.PI*2);ctx.fillStyle='rgba(255,240,180,0.8)';ctx.fill();
+    // Light cone
+    const lc=isoToScreen(ix,iy,0);
+    ctx.beginPath();ctx.moveTo(bot.x,bot.y);
+    ctx.lineTo(bot.x-30,lc.y);ctx.lineTo(bot.x+30,lc.y);ctx.closePath();
+    ctx.fillStyle='rgba(255,240,180,0.04)';ctx.fill();
+  });
+}
+
+// Draw ISO agent (2.5D sprite)
+function drawISOAgent(agent,wx,wy,t){
+  const pos=isoToScreen(wx,wy,0);
+  const bob=Math.sin(t*0.15)*2;
+  const legSwing=Math.sin(t*0.15);
+  const isDir=agent.isDirector;
+  const skin=agent.skin||'#FDBCB4';
+  const blazer=agent.blazer||agent.color||'#1a237e';
+  const hair=agent.hair||'#2c1810';
+  const x=pos.x,y=pos.y+bob;
+  const s=0.9; // scale
+
+  ctx.save();
+  ctx.translate(x,y);
+
+  // Shadow
+  ctx.beginPath();ctx.ellipse(0,4,14*s,4*s,0,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fill();
+
+  // Shoes
+  ctx.fillStyle='#1a1a2e';
+  ctx.beginPath();ctx.ellipse(-6*s,2*s,7*s,3*s,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(6*s,2*s,7*s,3*s,0,0,Math.PI*2);ctx.fill();
+
+  // Legs with walk
+  const lRot=legSwing*0.3;
+  ctx.save();ctx.translate(-5*s,-8*s);ctx.rotate(lRot);
+  ctx.fillStyle=isDir?'#1a0a30':'#1a1830';
+  ctx.fillRect(-4*s,0,8*s,16*s);ctx.restore();
+  ctx.save();ctx.translate(5*s,-8*s);ctx.rotate(-lRot);
+  ctx.fillStyle=isDir?'#1a0a30':'#1a1830';
+  ctx.fillRect(-4*s,0,8*s,16*s);ctx.restore();
+
+  // Body/blazer
+  const bG=ctx.createLinearGradient(-14*s,-26*s,14*s,-8*s);
+  bG.addColorStop(0,lightenHex(blazer,15));bG.addColorStop(1,blazer);
+  ctx.fillStyle=bG;
+  roundRect2d(ctx,-13*s,-26*s,26*s,20*s,4*s);ctx.fill();
+
+  // Lapels
+  ctx.fillStyle=lightenHex(blazer,20);
+  ctx.beginPath();ctx.moveTo(-13*s,-26*s);ctx.lineTo(-3*s,-26*s);ctx.lineTo(0,-18*s);ctx.lineTo(-8*s,-14*s);ctx.lineTo(-13*s,-17*s);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(13*s,-26*s);ctx.lineTo(3*s,-26*s);ctx.lineTo(0,-18*s);ctx.lineTo(8*s,-14*s);ctx.lineTo(13*s,-17*s);ctx.closePath();ctx.fill();
+
+  // Shirt triangle
+  ctx.fillStyle='#dde8f8';
+  ctx.beginPath();ctx.moveTo(-4*s,-26*s);ctx.lineTo(0,-18*s);ctx.lineTo(4*s,-26*s);ctx.closePath();ctx.fill();
+
+  // Chain (director)
+  if(isDir){
+    ctx.strokeStyle='#ffd700';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(0,-20*s,7*s,Math.PI*0.2,Math.PI*0.8);ctx.stroke();
+  }
+
+  // Tie or brooch
+  if(agent.tie){
+    ctx.fillStyle=agent.tie;
+    ctx.beginPath();ctx.moveTo(-3*s,-26*s);ctx.lineTo(3*s,-26*s);ctx.lineTo(3*s,-15*s);ctx.lineTo(0,-12*s);ctx.lineTo(-3*s,-15*s);ctx.closePath();ctx.fill();
+  } else {
+    ctx.fillStyle='#ffd700';ctx.beginPath();ctx.arc(0,-20*s,3*s,0,Math.PI*2);ctx.fill();
+  }
+
+  // Badge
+  if(isDir){ctx.fillStyle='#ffd700';}else{ctx.fillStyle='#fff';}
+  ctx.fillRect(6*s,-24*s,7*s,9*s);
+  ctx.fillStyle=isDir?'#8B6914':'#2563eb';
+  ctx.fillRect(7*s,-23*s,5*s,2*s);
+
+  // Arms
+  const aRot=-legSwing*0.25;
+  ctx.save();ctx.translate(-13*s,-22*s);ctx.rotate(aRot);
+  ctx.fillStyle=blazer;ctx.fillRect(-4*s,0,8*s,15*s);
+  ctx.fillStyle=skin;ctx.fillRect(-3*s,13*s,6*s,5*s);ctx.restore();
+  ctx.save();ctx.translate(13*s,-22*s);ctx.rotate(-aRot);
+  ctx.fillStyle=blazer;ctx.fillRect(-4*s,0,8*s,15*s);
+  ctx.fillStyle=skin;ctx.fillRect(-3*s,13*s,6*s,5*s);ctx.restore();
+
+  // Neck
+  ctx.fillStyle=skin;ctx.fillRect(-4*s,-34*s,8*s,10*s);
+
+  // Head
+  const hG=ctx.createRadialGradient(-3*s,-44*s,2,0,-42*s,16*s);
+  hG.addColorStop(0,lightenHex(skin,20));hG.addColorStop(1,skin);
+  ctx.fillStyle=hG;ctx.beginPath();ctx.ellipse(0,-44*s,14*s,16*s,0,0,Math.PI*2);ctx.fill();
+  // head shadow
+  ctx.fillStyle='rgba(0,0,0,0.08)';ctx.beginPath();ctx.ellipse(3*s,-44*s,8*s,12*s,0,0,Math.PI*2);ctx.fill();
+
+  // Hair
+  drawHair(ctx,agent,s,hair);
+
+  // Eyes
+  const blink=(Math.floor(t/100)%8===0&&t%6<2);
+  if(blink){
+    ctx.fillStyle='#1a1a2a';ctx.fillRect(-7*s,-48*s,5*s,2*s);ctx.fillRect(2*s,-48*s,5*s,2*s);
+  } else {
+    ctx.fillStyle='#1a1a2a';
+    ctx.beginPath();ctx.ellipse(-5*s,-47*s,3*s,4*s,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(5*s,-47*s,3*s,4*s,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.beginPath();ctx.arc(-4*s,-48.5*s,1.3*s,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(6*s,-48.5*s,1.3*s,0,Math.PI*2);ctx.fill();
+    // Iris
+    ctx.fillStyle=isDir?'#7c3aed':'#1a237e';
+    ctx.beginPath();ctx.ellipse(-5*s,-47*s,1.8*s,2.2*s,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(5*s,-47*s,1.8*s,2.2*s,0,0,Math.PI*2);ctx.fill();
+  }
+
+  // Cheeks
+  ctx.fillStyle='rgba(255,140,140,0.35)';
+  ctx.beginPath();ctx.ellipse(-9*s,-44*s,4*s,3*s,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(9*s,-44*s,4*s,3*s,0,0,Math.PI*2);ctx.fill();
+
+  // Mouth
+  ctx.strokeStyle='rgba(160,80,80,0.8)';ctx.lineWidth=1.3*s;
+  ctx.beginPath();ctx.arc(0,-40*s,4*s,0.3,Math.PI-0.3);ctx.stroke();
+
+  // Status dot
+  const dotC=isDir?'#ffd700':'#22c55e';
+  ctx.fillStyle=dotC;ctx.beginPath();ctx.arc(12*s,-56*s,4.5*s,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#0f0b06';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(12*s,-56*s,4.5*s,0,Math.PI*2);ctx.stroke();
+  if(isDir){
+    // Glow
+    ctx.fillStyle='rgba(255,215,0,0.2)';ctx.beginPath();ctx.arc(12*s,-56*s,8*s,0,Math.PI*2);ctx.fill();
+  }
+
+  // Director crown
+  if(isDir){
+    ctx.font=`${14*s}px serif`;ctx.textAlign='center';ctx.fillText('👑',0,-62*s-Math.sin(t*0.05)*2);
+  }
+
+  // Name tag
+  const nameW=agent.name.length*5.5*s+10;
+  ctx.fillStyle='rgba(15,11,6,0.9)';
+  roundRect2d(ctx,-nameW/2,6*s,nameW,14*s,3*s);ctx.fill();
+  ctx.strokeStyle=isDir?'rgba(200,169,110,0.6)':'rgba(200,169,110,0.3)';ctx.lineWidth=0.5;
+  roundRect2d(ctx,-nameW/2,6*s,nameW,14*s,3*s);ctx.stroke();
+  const shortName=agent.name.split(' ')[0];
+  ctx.fillStyle=isDir?'#ffd700':'#c8a96e';
+  ctx.font=`bold ${8*s}px sans-serif`;ctx.textAlign='center';
+  ctx.fillText(shortName,0,16*s);
+
+  ctx.restore();
+}
+
+function drawHair(ctx,agent,s,hair){
+  const hs=agent.hairStyle||'short';
+  ctx.fillStyle=hair;
+  if(hs==='hijab'){
+    ctx.fillStyle=darkenHex(agent.blazer||hair,10);
+    ctx.beginPath();ctx.ellipse(0,-44*s,16*s,18*s,0,0,Math.PI*2);ctx.fill();
+    roundRect2d(ctx,-15*s,-50*s,30*s,22*s,4*s);ctx.fill();
+    ctx.fillStyle=agent.skin||'#F5CBA7';
+    ctx.beginPath();ctx.ellipse(0,-45*s,11*s,14*s,0,0,Math.PI*2);ctx.fill();
+  } else if(hs==='spiky'){
+    ctx.fillStyle=hair;
+    ctx.beginPath();ctx.ellipse(0,-52*s,14*s,10*s,0,0,Math.PI*2);ctx.fill();
+    roundRect2d(ctx,-14*s,-58*s,28*s,12*s,4*s);ctx.fill();
+    [-9,-4,1,6,11].forEach((dx,i)=>{
+      ctx.beginPath();ctx.moveTo(dx*s,-58*s);ctx.lineTo((dx-4)*s,-68*s+(i%2)*3*s);ctx.lineTo((dx+4)*s,-68*s+(i%2)*3*s);ctx.closePath();ctx.fill();
+    });
+  } else if(hs==='long-undercut'){
+    ctx.fillStyle=hair;
+    ctx.beginPath();ctx.ellipse(0,-52*s,15*s,12*s,0,0,Math.PI*2);ctx.fill();
+    roundRect2d(ctx,-14*s,-60*s,28*s,14*s,4*s);ctx.fill();
+    // Purple streak
+    ctx.fillStyle='rgba(168,85,247,0.5)';
+    ctx.beginPath();ctx.ellipse(-4*s,-58*s,6*s,3*s,0,0,Math.PI*2);ctx.fill();
+    // Long sides
+    ctx.fillStyle=hair;
+    ctx.fillRect(-15*s,-52*s,10*s,24*s);
+    ctx.fillRect(5*s,-52*s,10*s,24*s);
+    ctx.beginPath();ctx.ellipse(-10*s,-28*s,6*s,10*s,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(10*s,-28*s,6*s,10*s,0,0,Math.PI*2);ctx.fill();
+  } else if(hs==='ponytail'){
+    ctx.fillStyle=hair;
+    ctx.beginPath();ctx.ellipse(0,-52*s,14*s,10*s,0,0,Math.PI*2);ctx.fill();
+    roundRect2d(ctx,-14*s,-58*s,28*s,12*s,4*s);ctx.fill();
+    // ponytail
+    const swing=Math.sin(tick*0.08)*4;
+    ctx.beginPath();ctx.moveTo(12*s,-54*s);ctx.quadraticCurveTo((18+swing)*s,-40*s,(14+swing)*s,-26*s);ctx.lineWidth=7*s;ctx.strokeStyle=hair;ctx.stroke();
+    ctx.fillStyle='#ffd700';ctx.beginPath();ctx.arc(12*s,-54*s,4*s,0,Math.PI*2);ctx.fill();
+  } else {
+    // short/buzz
+    ctx.fillStyle=hair;
+    ctx.beginPath();ctx.ellipse(0,-52*s,14*s,10*s,0,0,Math.PI*2);ctx.fill();
+    roundRect2d(ctx,-14*s,-58*s,28*s,12*s,4*s);ctx.fill();
+  }
+}
+
+function roundRect2d(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function lightenHex(hex,amt){
+  if(!hex||hex[0]!=='#')return hex||'#888';
+  const n=parseInt(hex.slice(1),16);
+  return '#'+[n>>16,(n>>8)&0xff,n&0xff].map(c=>Math.min(255,c+amt).toString(16).padStart(2,'0')).join('');
+}
+function darkenHex(hex,amt){
+  if(!hex||hex[0]!=='#')return hex||'#444';
+  const n=parseInt(hex.slice(1),16);
+  return '#'+[n>>16,(n>>8)&0xff,n&0xff].map(c=>Math.max(0,c-amt).toString(16).padStart(2,'0')).join('');
+}
+
+function updateAgentPositions(){
+  const activeAgents=(window._agents||[]).filter(a=>a.status==='active');
+  activeAgents.forEach((agent,i)=>{
+    const s=getAgentWalk(agent.id,i);
+    s.x+=s.vx;s.y+=s.vy;
+    if(s.x<0.5){s.vx=Math.abs(s.vx);s.facing=1;}
+    if(s.x>ROOM_W-0.5){s.vx=-Math.abs(s.vx);s.facing=-1;}
+    if(s.y<0.5){s.vy=Math.abs(s.vy);}
+    if(s.y>ROOM_H-0.5){s.vy=-Math.abs(s.vy);}
+    if(Math.random()<0.005){
+      s.vx=(Math.random()-0.5)*0.04;s.vy=(Math.random()-0.5)*0.025;
+      if(Math.abs(s.vx)<0.008)s.vx=s.vx<0?-0.01:0.01;
+      s.facing=s.vx>=0?1:-1;
+    }
+  });
+}
+
+function drawISO(){
+  if(!W||!H){
+    initCanvas();
+    const vp=document.getElementById('iso-vp');
+    W=vp.clientWidth;H=vp.clientHeight-44;
+    canvas.width=W;canvas.height=H;
+  }
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle='#1a1208';ctx.fillRect(0,0,W,H);
+
+  // Center the ISO scene
+  const c=worldCenter();
+  const ox=W/2-c.x+camX;
+  const oy=H/2-c.y+80+camY;
+
+  ctx.save();
+  ctx.translate(ox,oy);
+
+  // Draw in order: floor, walls, furniture, agents
+  drawFloor();
+  drawWalls();
+  drawWallDecor();
+
+  // Furniture
+  FURNITURE.forEach(([ix,iy,iw,id,ih,tc,fc,rc,lbl])=>{
+    drawBox(ix,iy,iw,id,ih,tc,fc,rc);
+    // Plant top (leaves)
+    if(lbl===''&&ih>=1.2&&tc==='#3a9038'){
+      ctx.save();
+      const top=isoToScreen(ix+iw/2,iy+id/2,ih);
+      ctx.translate(top.x,top.y);
+      ctx.fillStyle='#4ade80';
+      for(let i=0;i<4;i++){
+        const a=i*Math.PI/2;
+        ctx.beginPath();ctx.ellipse(Math.cos(a)*8,Math.sin(a)*5,9,7,a,0,Math.PI*2);ctx.fill();
+      }
+      ctx.restore();
+    }
+    // Label above desk
+    if(lbl&&lbl.length>0&&ih<1){
+      const top=isoToScreen(ix+iw/2,iy+id/2,ih+0.1);
+      ctx.save();ctx.translate(top.x,top.y);
+      ctx.fillStyle='rgba(15,11,6,0.8)';
+      roundRect2d(ctx,-18,-10,36,14,3);ctx.fill();
+      ctx.fillStyle='rgba(200,169,110,0.6)';ctx.font='bold 7px sans-serif';ctx.textAlign='center';
+      ctx.fillText(lbl,0,2);ctx.restore();
+    }
+  });
+
+  // Chairs
+  CHAIRS.forEach(([ix,iy])=>drawChair(ix,iy));
+
+  // Monitors
+  MONITORS.forEach(([ix,iy,iz])=>drawMonitor(ix,iy));
+
+  // Ping pong net
+  const ppNet=isoToScreen(2.25,8.5,0.85);
+  ctx.save();ctx.translate(ppNet.x,ppNet.y);ctx.fillStyle='#fff';ctx.fillRect(-2,0,4,12);ctx.restore();
+
+  // Agents
+  updateAgentPositions();
+  tick++;
+  const activeAgents=(window._agents||[]).filter(a=>a.status==='active');
+  // Sort by iso depth (y+x descending = front first)
+  const sorted=[...activeAgents].sort((a,b)=>{
+    const sa=getAgentWalk(a.id,0);const sb=getAgentWalk(b.id,0);
+    return (sa.x+sa.y)-(sb.x+sb.y);
+  });
+  sorted.forEach((agent,i)=>{
+    const s=getAgentWalk(agent.id,i);
+    drawISOAgent(agent,s.x,s.y,tick);
+  });
+
+  ctx.restore();
+
+  if(document.getElementById('view-office').style.display!=='none'){
+    rafId=requestAnimationFrame(drawISO);
+  }
+}
+
+// Init
+window.addEventListener('resize',()=>{
+  initCanvas();
+  const vp=document.getElementById('iso-vp');
+  W=vp.clientWidth;H=vp.clientHeight-44;
+  canvas.width=W;canvas.height=H;
+});
+
+// KANBAN
+window.renderKanban=function(){
+  const leads=window._leads||[];const f=window._filter||'all';
+  const list=f==='all'?leads:leads.filter(l=>l.module===f);
+  for(let i=0;i<4;i++){
+    const col=document.getElementById('col-'+i);const cnt=document.getElementById('cnt-'+i);if(!col)continue;
+    const items=list.filter(l=>l.status===i);if(cnt)cnt.textContent=items.length;col.innerHTML='';
+    items.forEach(l=>{
+      const tc=l.module==='Property'?'t-prop':l.module==='Loan'?'t-loan':'t-trav';
+      const d=document.createElement('div');d.className='kb-card';
+      d.innerHTML=`<div class="kb-card-n">${l.name}</div><div class="kb-card-m">${l.note||'—'}</div><div class="kb-card-f"><span class="kb-tag ${tc}">${l.module}</span><div class="kb-acts">${l.status>0?`<button class="cb" onclick="moveLead('${l.id}',-1)">←</button>`:''} ${l.status<3?`<button class="cb" onclick="moveLead('${l.id}',1)">→</button>`:''}<button class="cb" onclick="editLead('${l.id}')">✎</button><button class="cb del" onclick="deleteLead('${l.id}')">✕</button></div></div>`;
+      col.appendChild(d);
+    });
+  }
+};
+window.filterLeads=function(t){window._filter=t;renderKanban();};
+window.setTab=function(el){document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));el.classList.add('active');};
+window.updateStats=function(){
+  const l=window._leads||[];const g=id=>document.getElementById(id);
+  g('s-leads')&&(g('s-leads').textContent=l.length);
+  g('s-closed')&&(g('s-closed').textContent=l.filter(x=>x.status===3).length);
+  g('con-leads')&&(g('con-leads').textContent=l.length);
+  g('con-komisen')&&(g('con-komisen').textContent='RM '+(l.filter(x=>x.status===3).length*500).toLocaleString());
+  g('mod-prop-count')&&(g('mod-prop-count').textContent=l.filter(x=>x.module==='Property').length+' leads');
+  g('mod-loan-count')&&(g('mod-loan-count').textContent=l.filter(x=>x.module==='Loan').length+' leads');
+  g('mod-travel-count')&&(g('mod-travel-count').textContent=l.filter(x=>x.module==='Travel').length+' leads');
+};
+window.updateBars=function(){
+  const l=window._leads||[];const t=l.length||1;
+  const p=l.filter(x=>x.module==='Property').length;const ln=l.filter(x=>x.module==='Loan').length;const tr=l.filter(x=>x.module==='Travel').length;
+  const pct=n=>Math.round(n/t*100);const g=id=>document.getElementById(id);
+  g('bar-prop')&&(g('bar-prop').style.width=pct(p)+'%');g('bar-loan')&&(g('bar-loan').style.width=pct(ln)+'%');g('bar-travel')&&(g('bar-travel').style.width=pct(tr)+'%');
+  g('bnum-prop')&&(g('bnum-prop').textContent=p);g('bnum-loan')&&(g('bnum-loan').textContent=ln);g('bnum-travel')&&(g('bnum-travel').textContent=tr);
+};
+window.openAddModal=function(){
+  window._editId=null;document.getElementById('modal-title').textContent='Tambah Lead Baru';
+  ['f-name','f-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-module').value='Property';document.getElementById('f-status').value='0';
+  document.getElementById('modal-bg').classList.add('show');
+};
+window.closeModal=function(){document.getElementById('modal-bg').classList.remove('show');window._editId=null;};
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+window.showToast=function(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);};
+
+// AI
+window.toggleAI=function(){document.getElementById('ai-panel').classList.toggle('open');};
+window.quickAsk=function(q){document.getElementById('ai-inp').value=q;sendAI();};
+window.sendAI=async function(){
+  const inp=document.getElementById('ai-inp');const msg=inp.value.trim();if(!msg)return;
+  inp.value='';const btn=document.getElementById('ai-btn');btn.disabled=true;
+  addMsg('user',msg);
+  const leads=window._leads||[];const agents=(window._agents||[]).filter(a=>a.status==='active');
+  const sys=`Kamu adalah AISA, AI Agent AIS Group Malaysia. Isometric virtual HQ. Director: Zack Mastermind. Agents: ${agents.map(a=>a.name).join(', ')||'tiada'}. Leads: ${leads.length} (Property:${leads.filter(l=>l.module==='Property').length}, Loan:${leads.filter(l=>l.module==='Loan').length}, Travel:${leads.filter(l=>l.module==='Travel').length}, Closed:${leads.filter(l=>l.status===3).length}). KPI: RM18K/bulan. Jawab BM, ringkas, praktikal, emoji.`;
+  const tid='t'+Date.now();addTyping(tid);
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:sys,messages:[{role:'user',content:msg}]})});
+    const d=await r.json();removeTyping(tid);
+    addMsg('ai',d.content&&d.content[0]?d.content[0].text:'Maaf, cuba lagi.');
+  }catch(e){removeTyping(tid);addMsg('ai','⚠️ Tidak dapat sambung.');}
+  btn.disabled=false;
+};
+function addMsg(role,text){
+  const box=document.getElementById('ai-msgs');const d=document.createElement('div');d.className='msg '+role;
+  const now=new Date();const ts=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  d.innerHTML=`<div class="msg-bub">${text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')}</div><div class="msg-t">${role==='ai'?'AISA':'Zack'} · ${ts}</div>`;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
+}
+function addTyping(id){const box=document.getElementById('ai-msgs');const d=document.createElement('div');d.className='msg ai';d.id=id;d.innerHTML='<div class="msg-bub"><div class="tdots"><span></span><span></span><span></span></div></div>';box.appendChild(d);box.scrollTop=box.scrollHeight;}
+function removeTyping(id){const e=document.getElementById(id);if(e)e.remove();}
+
+// Start
+setTimeout(()=>{
+  initCanvas();
+  const vp=document.getElementById('iso-vp');
+  W=vp.clientWidth;H=vp.clientHeight-44;
+  canvas.width=W;canvas.height=H;
+  drawISO();
+},200);
+</script>
+</body>
+</html>
