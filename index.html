@@ -250,6 +250,137 @@ body{font-family:'Segoe UI',sans-serif;background:#1a1208;color:#fff;overflow:hi
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);background:#c8a96e;color:#0f0b06;padding:9px 18px;border-radius:7px;font-size:11px;z-index:300;opacity:0;transition:all 0.3s;white-space:nowrap;font-weight:600}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .pending-dot{background:#ef4444;color:#fff;width:15px;height:15px;border-radius:50%;font-size:7px;display:none;align-items:center;justify-content:center;position:absolute;right:8px;top:50%;transform:translateY(-50%)}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  /* Hide sidebar on mobile — use bottom nav instead */
+  #sidebar{display:none}
+  #main{width:100vw}
+  
+  /* Topbar mobile */
+  #topbar{padding:0 10px;gap:6px;height:44px}
+  .topbar-title{font-size:11px}
+  .status-badge{display:none}
+  .topbar-btn{padding:4px 8px;font-size:10px}
+
+  /* Content full screen */
+  #content{height:calc(100vh - 44px - 52px)} /* topbar + bottom nav */
+
+  /* ISO canvas full width */
+  #iso-canvas{width:100%!important}
+
+  /* HUD mobile */
+  .hud-top{height:40px;padding:0 10px;gap:6px}
+  .hud-title{font-size:12px;letter-spacing:1px}
+  .hud-badge{display:none}
+  .hud-agents-count{font-size:9px;padding:3px 8px}
+  .hud-btn{width:30px;height:30px;font-size:12px}
+  .open-hq-btn{display:none!important}
+
+  /* Module overlay mobile — horizontal scroll at top */
+  .module-overlay{
+    top:auto!important;
+    bottom:56px;
+    right:auto!important;
+    left:0;right:0;
+    flex-direction:row!important;
+    padding:0 8px;
+    gap:6px;
+    overflow-x:auto;
+    z-index:25;
+  }
+  .mod-card{min-width:100px;padding:6px 8px;flex-shrink:0}
+  .mod-title{font-size:10px}
+  .mod-count{font-size:8.5px}
+  .mod-icon{width:20px;height:20px}
+
+  /* Console mobile */
+  .iso-console{height:38px;padding:0 10px;gap:8px}
+  .console-lbl{display:none}
+  .console-stat{font-size:9px}
+  .console-btns{gap:4px}
+  .console-btn{padding:2px 7px;font-size:9px}
+
+  /* AI Panel mobile — full screen */
+  #ai-panel{width:100vw!important;left:0;right:0}
+  
+  /* AI FAB mobile position */
+  .ai-fab{bottom:60px;right:8px;width:40px;height:40px;font-size:16px}
+
+  /* Kanban mobile */
+  #view-kanban{padding:10px 8px;gap:8px}
+  .kb-header{gap:6px}
+  .kb-header h2{font-size:13px}
+  .ftabs{display:none} /* hide on mobile, too cramped */
+  .add-btn{padding:5px 10px;font-size:10px}
+  .kb-cols{gap:6px}
+  .kb-col{min-width:130px}
+  .kb-col-h{padding:7px 9px}
+  .kb-col-t{font-size:8.5px}
+  .kb-card{padding:8px}
+  .kb-card-n{font-size:10.5px}
+  .kb-card-m{font-size:8.5px}
+
+  /* Portal mobile */
+  #view-portal{padding:10px 10px;gap:10px}
+  .portal-header{gap:10px}
+  .portal-av{width:44px;height:44px;font-size:15px}
+  .portal-name{font-size:15px}
+  .portal-stats{grid-template-columns:repeat(3,1fr);gap:6px}
+  .pstat{padding:10px 10px}
+  .pstat-val{font-size:18px}
+
+  /* Agents view mobile */
+  #view-agents{padding:10px}
+  .reg-box{flex-wrap:wrap;gap:6px}
+  .agent-row{padding:9px 10px;gap:8px}
+  .agent-row-name{font-size:11px}
+
+  /* Stats mobile */
+  #view-stats{padding:10px}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:7px}
+  .stat-val{font-size:20px}
+
+  /* Login page mobile */
+  .login-box{padding:24px 20px;width:92vw;border-radius:12px}
+  .login-title{font-size:15px}
+
+  /* Modal mobile */
+  .modal{width:94vw;padding:18px}
+}
+
+/* ===== BOTTOM NAVIGATION (Mobile only) ===== */
+#bottom-nav{
+  display:none;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:52px;
+  background:#0f0b06;
+  border-top:1px solid #2a1f0e;
+  z-index:100;
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-around;
+  padding:0 4px;
+}
+@media(max-width:768px){
+  #bottom-nav{display:flex}
+}
+.bnav-item{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:4px 8px;cursor:pointer;color:#5a4a2a;
+  font-size:8.5px;transition:all 0.2s;border-radius:8px;
+  flex:1;
+}
+.bnav-item:hover,.bnav-item.active{color:#c8a96e;background:rgba(200,169,110,0.1)}
+.bnav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+.bnav-item.admin-bnav{display:none}
+.bnav-notif{
+  position:absolute;top:-2px;right:-2px;
+  width:10px;height:10px;border-radius:50%;
+  background:#ef4444;border:1.5px solid #0f0b06;
+  display:none;
+}
 </style>
 </head>
 <body>
@@ -618,6 +749,8 @@ function showApp(user){
   document.querySelectorAll('.nav-item.admin-only').forEach(el=>el.style.display=window.isAdmin?'flex':'none');
   document.querySelectorAll('.nav-section.admin-only').forEach(el=>el.style.display=window.isAdmin?'block':'none');
   document.querySelectorAll('.admin-only-btn').forEach(el=>el.style.display=window.isAdmin?'flex':'none');
+  // Bottom nav admin items
+  document.querySelectorAll('.admin-bnav').forEach(el=>el.style.display=window.isAdmin?'flex':'none');
 
   // Admin-only HUD buttons
   if(window.isAdmin){
@@ -777,6 +910,10 @@ function switchView(name,navEl){
   if(name==='portal')renderPortal();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(navEl)navEl.classList.add('active');
+  // Update bottom nav active state
+  document.querySelectorAll('.bnav-item').forEach(n=>n.classList.remove('active'));
+  const bnavEl=document.getElementById('bnav-'+name);
+  if(bnavEl)bnavEl.classList.add('active');
   const t={office:'AIS GROUP — Virtual HQ',portal:'My Portal',kanban:'Sales Pipeline',agents:'Pengurusan Agents',stats:'Dashboard'};
   document.getElementById('topbar-title').textContent=t[name]||'AIS Group';
 }
@@ -854,6 +991,8 @@ window.updateAgentCount=function(){
   g('hud-agent-count')&&(g('hud-agent-count').textContent=active+' AGENTS');
   g('s-agents')&&(g('s-agents').textContent=active);
   const dot=g('pending-dot');if(dot){dot.style.display=pending>0?'flex':'none';dot.textContent=pending;}
+  const bnavNotif=document.getElementById('bnav-notif');
+  if(bnavNotif){bnavNotif.style.display=pending>0?'block':'none';}
 };
 window.renderAgentsList=function(){
   const agents=window._agents||[];
@@ -1154,5 +1293,35 @@ window.drawISO=function(){
 
 window.addEventListener('resize',()=>{const ov=document.getElementById('view-office');if(ov&&ov.style.display!=='none')drawISO();});
 </script>
+
+<!-- BOTTOM NAVIGATION (Mobile) -->
+<div id="bottom-nav">
+  <div class="bnav-item active" onclick="switchView('office',this)" id="bnav-office">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+    Office
+  </div>
+  <div class="bnav-item" onclick="switchView('portal',this)" id="bnav-portal">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Portal
+  </div>
+  <div class="bnav-item" onclick="switchView('kanban',this)" id="bnav-kanban">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="3" width="4" height="12" rx="1"/><rect x="17" y="3" width="4" height="15" rx="1"/></svg>
+    Pipeline
+  </div>
+  <div class="bnav-item admin-bnav" onclick="switchView('agents',this)" id="bnav-agents" style="position:relative">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Agents
+    <div class="bnav-notif" id="bnav-notif"></div>
+  </div>
+  <div class="bnav-item admin-bnav" onclick="toggleAI()" id="bnav-ai">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83"/></svg>
+    AISA
+  </div>
+  <div class="bnav-item" onclick="openAddModal()" id="bnav-add">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    + Lead
+  </div>
+</div>
 </body>
 </html>
+
