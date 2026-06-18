@@ -410,12 +410,22 @@ body{font-family:'Segoe UI',sans-serif;background:#1a1208;color:#fff;overflow:hi
         </div>
         <button class="ai-fab" id="ai-fab-btn" onclick="toggleAI()" style="display:none">🤖</button>
         <div id="ai-panel">
-          <div class="ai-hdr"><div class="ai-av-icon">🤖</div><div><div class="ai-nm">AISA — AI Agent</div><div class="ai-st">● Online · AIS Group</div></div><button class="ai-x" onclick="toggleAI()">✕</button></div>
-          <div class="ai-msgs" id="ai-msgs"><div class="msg ai"><div class="msg-bub">Salam! Saya <b>AISA</b> 🤖 — AI Agent AIS Group. Apa yang boleh saya bantu? ✨</div><div class="msg-t">AISA · Sekarang</div></div></div>
+          <div class="ai-hdr"><div class="ai-av-icon">🤖</div><div><div class="ai-nm">AISA — Powered by Groq (Free)</div><div class="ai-st" id="aisa-status">● Semak API Key...</div></div><button class="ai-x" onclick="toggleAI()">✕</button></div>
+          <!-- API KEY SECTION -->
+          <div id="api-key-section" style="padding:10px 12px;border-bottom:1px solid #2a1f0e;background:#0a0705">
+            <div style="font-size:9px;color:#5a4a2a;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">🔑 Anthropic API Key</div>
+            <div style="display:flex;gap:6px">
+              <input id="api-key-input" type="password" placeholder="gsk_... (Groq API Key)" style="flex:1;padding:7px 10px;background:#150f08;border:1px solid #2a1f0e;border-radius:6px;color:#c8a96e;font-size:11px;outline:none;font-family:inherit" oninput="checkApiKey()">
+              <button onclick="saveApiKey()" style="padding:6px 10px;border-radius:6px;border:none;background:#c8a96e;color:#0f0b06;cursor:pointer;font-size:10px;font-weight:700;font-family:inherit;white-space:nowrap">Simpan</button>
+            </div>
+            <div id="api-key-hint" style="font-size:9px;color:#3a2a0e;margin-top:5px">Pergi console.groq.com → Sign up → API Keys → Create (FREE! No card needed)</div>
+          </div>
+          <div class="ai-msgs" id="ai-msgs"><div class="msg ai"><div class="msg-bub">Salam! Saya <b>AISA</b> 🤖 — AI Agent AIS Group.<br><br>Untuk aktifkan saya, sila masukkan <b>Groq API Key</b> anda di atas.<br><br>✅ <b>100% FREE</b> — Tiada credit card diperlukan!<br>Pergi <b>console.groq.com</b> → Sign up → API Keys → Create ✨</div><div class="msg-t">AISA · Sekarang</div></div></div>
           <div class="ai-qbtns">
             <button class="qbtn" onclick="quickAsk('Analisa pipeline leads sekarang')">📊 Analisa</button>
             <button class="qbtn" onclick="quickAsk('Cadang strategi follow-up terbaik')">💬 Follow-up</button>
             <button class="qbtn" onclick="quickAsk('Strategi capai KPI RM18K')">🎯 KPI</button>
+            <button class="qbtn" onclick="quickAsk('Buat laporan prestasi agents')">📋 Laporan</button>
           </div>
           <div class="ai-input-row"><input class="ai-inp" id="ai-inp" placeholder="Tanya AISA..." onkeydown="if(event.key==='Enter')sendAI()"><button class="ai-send" id="ai-btn" onclick="sendAI()">➤</button></div>
         </div>
@@ -869,20 +879,110 @@ document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===e
 window.showToast=function(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);};
 
 // ===== AI =====
-window.toggleAI=function(){document.getElementById('ai-panel').classList.toggle('open');};
+window.toggleAI=function(){
+  document.getElementById('ai-panel').classList.toggle('open');
+  if(document.getElementById('ai-panel').classList.contains('open'))initApiKey();
+};
+
+function initApiKey(){
+  const saved=localStorage.getItem('aisa_api_key');
+  if(saved){
+    document.getElementById('api-key-input').value=saved;
+    document.getElementById('api-key-section').style.display='none';
+    document.getElementById('aisa-status').textContent='● Online · API Key Active';
+    document.getElementById('aisa-status').style.color='#22c55e';
+  } else {
+    document.getElementById('api-key-section').style.display='block';
+    document.getElementById('aisa-status').textContent='● Perlu API Key';
+    document.getElementById('aisa-status').style.color='#f97316';
+  }
+}
+
+window.saveApiKey=function(){
+  const key=document.getElementById('api-key-input').value.trim();
+  if(!key){showToast('Sila masukkan API Key!');return;}
+  if(key.length < 20){showToast('❌ API Key terlalu pendek');return;}
+  localStorage.setItem('aisa_api_key',key);
+  document.getElementById('api-key-section').style.display='none';
+  document.getElementById('aisa-status').textContent='● Online · API Key Active';
+  document.getElementById('aisa-status').style.color='#22c55e';
+  showToast('✓ API Key disimpan! AISA sedia digunakan.');
+  addMsg('ai','✅ API Key berjaya disimpan! Saya AISA dah aktif sekarang. Cuba tanya saya sesuatu! 🤖');
+};
+
+window.checkApiKey=function(){
+  const key=document.getElementById('api-key-input').value.trim();
+  const hint=document.getElementById('api-key-hint');
+  if(key.startsWith('sk-ant-')&&key.length>20){
+    hint.textContent='✓ Format key nampak betul!';hint.style.color='#22c55e';
+  } else if(key.length>0){
+    hint.textContent='⚠ Pastikan key lengkap (AIza...)';hint.style.color='#f97316';
+  } else {
+    hint.textContent='Pergi console.groq.com → Sign up → API Keys → Create (FREE! No card needed)';hint.style.color='#3a2a0e';
+  }
+};
+
+window.clearApiKey=function(){
+  localStorage.removeItem('aisa_api_key');
+  document.getElementById('api-key-input').value='';
+  document.getElementById('api-key-section').style.display='block';
+  document.getElementById('aisa-status').textContent='● Perlu API Key';
+  document.getElementById('aisa-status').style.color='#f97316';
+  showToast('API Key dipadam');
+};
 window.quickAsk=function(q){document.getElementById('ai-inp').value=q;sendAI();};
 window.sendAI=async function(){
   const inp=document.getElementById('ai-inp');const msg=inp.value.trim();if(!msg)return;
+  const apiKey=localStorage.getItem('aisa_api_key');
+  if(!apiKey){
+    document.getElementById('api-key-section').style.display='block';
+    addMsg('ai','⚠️ Sila masukkan Groq API Key dahulu! Pergi console.groq.com untuk dapatkan key percuma (no credit card!).');
+    return;
+  }
   inp.value='';const btn=document.getElementById('ai-btn');btn.disabled=true;
   addMsg('user',msg);
   const leads=window._leads||[];const agents=(window._agents||[]).filter(a=>a.status==='active');
-  const sys=`Kamu adalah AISA, AI Agent AIS Group Malaysia. Director: Zack Mastermind. Agents aktif: ${agents.length} (${agents.map(a=>a.name).join(', ')||'tiada'}). Total leads: ${leads.length} (Property:${leads.filter(l=>l.module==='Property').length}, Loan:${leads.filter(l=>l.module==='Loan').length}, Travel:${leads.filter(l=>l.module==='Travel').length}, Closed:${leads.filter(l=>l.status===3).length}). KPI: RM18K/bulan. Jawab BM, ringkas, praktikal, guna emoji.`;
+  const sysPrompt=`Kamu adalah AISA (AI Sales Agent), pembantu pintar untuk AIS Group Malaysia. Co-Working Space KL. Director: Zack Mastermind. Agents aktif: ${agents.length} orang (${agents.map(a=>a.name).join(', ')||'tiada'}). Data pipeline: ${leads.length} leads (Property:${leads.filter(l=>l.module==='Property').length}, Loan:${leads.filter(l=>l.module==='Loan').length}, Travel:${leads.filter(l=>l.module==='Travel').length}, Selesai:${leads.filter(l=>l.status===3).length}). Target KPI: RM18,000/bulan. Jawab dalam Bahasa Malaysia yang mesra dan profesional. Berikan cadangan praktikal. Guna emoji secukupnya. Jawab ringkas dan jelas.`;
   const tid='t'+Date.now();addTyping(tid);
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:sys,messages:[{role:'user',content:msg}]})});
-    const d=await r.json();removeTyping(tid);
-    addMsg('ai',d.content&&d.content[0]?d.content[0].text:'Maaf, cuba lagi.');
-  }catch(e){removeTyping(tid);addMsg('ai','⚠️ Tidak dapat sambung. Cuba lagi.');}
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+apiKey
+      },
+      body:JSON.stringify({
+        model:'llama-3.1-8b-instant',
+        messages:[
+          {role:'system',content:sysPrompt},
+          {role:'user',content:msg}
+        ],
+        max_tokens:600,
+        temperature:0.7
+      })
+    });
+    const d=await r.json();
+    removeTyping(tid);
+    if(d.error){
+      if(d.error.code==='invalid_api_key'||d.error.status===401){
+        addMsg('ai','❌ API Key tidak sah. Sila semak semula key kau di console.groq.com');
+        document.getElementById('api-key-section').style.display='block';
+        localStorage.removeItem('aisa_api_key');
+        document.getElementById('aisa-status').textContent='● API Key Tidak Sah';
+        document.getElementById('aisa-status').style.color='#ef4444';
+      } else {
+        addMsg('ai','⚠️ Error: '+d.error.message);
+      }
+    } else if(d.choices&&d.choices[0]&&d.choices[0].message){
+      addMsg('ai',d.choices[0].message.content);
+    } else {
+      addMsg('ai','Maaf, tiada respons. Cuba lagi.');
+    }
+  }catch(e){
+    removeTyping(tid);
+    addMsg('ai','⚠️ Tidak dapat sambung ke AISA. Semak sambungan internet kau.');
+    console.error('AISA error:',e);
+  }
   btn.disabled=false;
 };
 function addMsg(role,text){
