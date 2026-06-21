@@ -187,7 +187,7 @@ body{font-family:'Segoe UI',sans-serif;background:#0a1628;color:#fff;overflow:hi
 #view-stats{position:absolute;inset:0;display:none;flex-direction:column;padding:14px;gap:12px;overflow-y:auto;background:#0a1628}
 
 /* ===== KALKULATOR ===== */
-#view-calc{position:absolute;inset:0;display:none;flex-direction:column;background:#0a1628}
+#view-calc{position:absolute;inset:0;display:none;flex-direction:column;background:#0a1628;min-height:0}
 .calc-topbar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#0d1f33;border-bottom:1px solid #16314f}
 .calc-topbar-title{color:#e8f1ff;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
 .calc-ext-btn{color:#3b82f6;font-size:11px;text-decoration:none;border:1px solid #1f4570;border-radius:7px;padding:5px 10px;display:flex;align-items:center;gap:5px}
@@ -354,6 +354,12 @@ body{font-family:'Segoe UI',sans-serif;background:#0a1628;color:#fff;overflow:hi
   /* Login page mobile */
   .login-box{padding:24px 20px;width:92vw;border-radius:12px}
   .login-title{font-size:15px}
+
+  /* Kalkulator mobile — compact topbar so title + button don't crowd narrow screens */
+  .calc-topbar{padding:8px 10px}
+  .calc-topbar-title{font-size:10.5px;gap:4px}
+  .calc-ext-btn{padding:5px 8px;font-size:0}
+  .calc-ext-btn::before{content:'⤢';font-size:13px}
 
   /* Modal mobile */
   .modal{width:94vw;padding:18px}
