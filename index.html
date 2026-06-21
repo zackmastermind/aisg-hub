@@ -84,6 +84,8 @@ body{font-family:'Segoe UI',sans-serif;background:#0a1628;color:#fff;overflow:hi
 .portal-av{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 0 20px rgba(59,130,246,0.3)}
 .portal-name{font-size:18px;font-weight:700;color:#e8f1ff}
 .portal-role{font-size:11px;color:#5b7a9e;margin-top:2px}
+.av-edit-btn{margin-top:6px;background:rgba(59,130,246,0.12);border:1px solid #3b82f6;color:#93c5fd;font-size:9.5px;font-weight:600;padding:4px 9px;border-radius:6px;cursor:pointer;font-family:inherit}
+.av-edit-btn:hover{background:rgba(59,130,246,0.22)}
 .portal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;flex-shrink:0}
 .pstat{background:#0d1f33;border:1px solid #16314f;border-radius:9px;padding:12px 14px}
 .pstat-label{font-size:9px;color:#1f4570;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
@@ -283,6 +285,23 @@ body{font-family:'Segoe UI',sans-serif;background:#0a1628;color:#fff;overflow:hi
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:center;justify-content:center}
 .modal-bg.show{display:flex}
 .modal{background:#0d1f33;border:1px solid #16314f;border-radius:12px;padding:22px;width:350px;max-width:90vw}
+
+/* ===== AVATAR BUILDER ===== */
+.avatar-modal{width:360px;max-height:88vh;overflow-y:auto}
+.avatar-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.avatar-skip-btn{background:none;border:1px solid #16314f;color:#5b7a9e;width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center}
+.avatar-skip-btn:hover{border-color:#3b82f6;color:#e8f1ff}
+.avatar-preview-wrap{display:flex;justify-content:center;background:radial-gradient(ellipse at 50% 60%,rgba(59,130,246,0.12) 0%,transparent 70%);border:1px solid #16314f;border-radius:10px;margin-bottom:14px}
+#avatar-preview-canvas{display:block}
+.av-section{margin-bottom:12px}
+.av-label{font-size:9.5px;font-weight:700;color:#5b7a9e;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px}
+.av-row{display:flex;gap:6px;flex-wrap:wrap}
+.av-opt{background:#071120;border:1px solid #16314f;color:#93c5fd;font-size:10.5px;font-weight:600;padding:7px 11px;border-radius:7px;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.av-opt:hover{border-color:#3b82f6}
+.av-opt.active{background:rgba(59,130,246,0.18);border-color:#3b82f6;color:#e8f1ff;box-shadow:0 0 10px rgba(59,130,246,0.25)}
+.av-swatch-row{display:flex;gap:7px;flex-wrap:wrap}
+.av-swatch{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.15)}
+.av-swatch.active{border-color:#e8f1ff;box-shadow:0 0 0 2px #0d1f33,0 0 0 4px #3b82f6}
 .modal-title{font-size:13.5px;font-weight:700;color:#e8f1ff;margin-bottom:15px}
 .form-group{margin-bottom:10px}
 .form-label{font-size:9px;color:#5b7a9e;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block}
@@ -651,6 +670,7 @@ body{font-family:'Segoe UI',sans-serif;background:#0a1628;color:#fff;overflow:hi
           <div>
             <div class="portal-name" id="portal-name">Loading...</div>
             <div class="portal-role" id="portal-role">Agent · AIS Group</div>
+            <button class="av-edit-btn" onclick="openAvatarBuilder(false)">🎨 Customize Avatar</button>
           </div>
           <button class="add-lead-portal" style="margin-left:auto" onclick="openAddModal()">+ Tambah Lead</button>
         </div>
@@ -780,6 +800,48 @@ body{font-family:'Segoe UI',sans-serif;background:#0a1628;color:#fff;overflow:hi
     <div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Batal</button><button class="btn-save" onclick="saveLead()">Simpan</button></div>
   </div>
 </div>
+
+<!-- AVATAR BUILDER -->
+<div class="modal-bg" id="avatar-modal-bg">
+  <div class="modal avatar-modal">
+    <div class="avatar-modal-head">
+      <div class="modal-title" id="avatar-modal-title" style="margin:0">🎨 Sediakan Avatar Anda</div>
+      <button class="avatar-skip-btn" id="avatar-skip-btn" onclick="closeAvatarBuilder()">✕</button>
+    </div>
+    <div class="avatar-preview-wrap"><canvas id="avatar-preview-canvas" width="180" height="190"></canvas></div>
+
+    <div class="av-section">
+      <div class="av-label">Gaya Rambut</div>
+      <div class="av-row" id="av-hairstyle-row"></div>
+    </div>
+    <div class="av-section" id="av-haircolor-section">
+      <div class="av-label" id="av-haircolor-label">Warna Rambut</div>
+      <div class="av-swatch-row" id="av-haircolor-row"></div>
+    </div>
+    <div class="av-section">
+      <div class="av-label">Warna Kulit</div>
+      <div class="av-swatch-row" id="av-skin-row"></div>
+    </div>
+    <div class="av-section">
+      <div class="av-label">Warna Blazer</div>
+      <div class="av-swatch-row" id="av-blazer-row"></div>
+    </div>
+    <div class="av-section">
+      <div class="av-label">Leher</div>
+      <div class="av-row" id="av-tietype-row">
+        <button class="av-opt" id="av-tie-tie-btn" onclick="setAvatarOpt('tieType','tie',this)">👔 Tali Leher</button>
+        <button class="av-opt" id="av-tie-chain-btn" onclick="setAvatarOpt('tieType','chain',this)">⛓️ Rantai</button>
+      </div>
+    </div>
+    <div class="av-section" id="av-tiecolor-section">
+      <div class="av-label">Warna Tali Leher</div>
+      <div class="av-swatch-row" id="av-tiecolor-row"></div>
+    </div>
+
+    <button class="btn-save" style="width:100%;margin-top:6px" onclick="saveAvatarBuilder()">✓ Simpan Avatar</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- LOGIN ENTRANCE — animated particle/orb background -->
@@ -915,6 +977,9 @@ onAuthStateChanged(auth,async(user)=>{
     }
 
     showApp(user);
+    if(!window.isAdmin&&window._myAgentData&&!window._myAgentData.avatarSetup){
+      setTimeout(()=>openAvatarBuilder(true),400);
+    }
 
     // Subscribe to data
     if(window.isAdmin){
@@ -1029,7 +1094,7 @@ window.doRegister=async function(){
       name,email,phone,module,
       status:'pending',color,initials,
       hairStyle:'short',skin:'#FDBCB4',blazer:color,
-      tieType:'tie',tieColor:'#ffd700',
+      tieType:'tie',tieColor:'#ffd700',avatarSetup:false,
       isDirector:false,isFemale:false,
       uid:cred.user.uid,createdAt:Date.now()
     });
@@ -1046,6 +1111,32 @@ window.doRegister=async function(){
 window.doLogout=async function(){
   await signOut(auth);
   showToast('Log keluar berjaya');
+};
+
+// AVATAR BUILDER SAVE
+window.saveAvatarBuilder=async function(){
+  const d=window._avatarDraft;if(!d||!window._myAgentData)return;
+  const btn=document.querySelector('.avatar-modal .btn-save');
+  const origTxt=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='⏳ Menyimpan...';}
+  try{
+    await updateDoc(doc(db,'agents',window._myAgentData.id),{
+      hairStyle:d.hairStyle,hair:d.hair,hijabColor:d.hijabColor,skin:d.skin,
+      blazer:d.blazer,color:d.blazer,tieType:d.tieType,tieColor:d.tieColor,avatarSetup:true
+    });
+    window._myAgentData={...window._myAgentData,...d,color:d.blazer,avatarSetup:true};
+    window._avatarMandatory=false;
+    document.getElementById('avatar-modal-bg').style.display='none';
+    if(avPreviewRaf)cancelAnimationFrame(avPreviewRaf);
+    const sav=document.getElementById('sidebar-av'),pav=document.getElementById('portal-av');
+    if(sav&&!window.isAdmin)sav.style.background=d.blazer;
+    if(pav&&!window.isAdmin)pav.style.background=d.blazer;
+    showToast('✓ Avatar disimpan!');
+    if(window.drawISO)drawISO();
+  }catch(e){
+    showToast('Ralat: '+e.message);
+  }
+  if(btn){btn.disabled=false;btn.textContent=origTxt||'✓ Simpan Avatar';}
 };
 
 // LEADS CRUD
@@ -1607,13 +1698,10 @@ function getWalk(id,i){
   return agentWalk[id];
 }
 
-function drawAgent(agent,wx,wy,t){
-  const pos=iso(wx,wy,0);const bob=Math.sin(t*0.15)*2;
+function paintAvatarBody(ctx,agent,t){
   const ls=Math.sin(t*0.12),as=Math.sin(t*0.12+Math.PI);
   const skin=agent.skin||'#FDBCB4',blazer=agent.blazer||agent.color||'#1a237e',hair=agent.hair||'#2c1810';
   const isDir=agent.isDirector;const s=0.9;
-  const x=pos.x,y=pos.y+bob;
-  ctx.save();ctx.translate(x,y);
   ctx.fillStyle='rgba(0,0,0,0.18)';ctx.beginPath();ctx.ellipse(0,4,13*s,4*s,0,0,Math.PI*2);ctx.fill();
   // Shoes
   [[-6,6]].forEach(([l,r])=>{ctx.fillStyle='#1a1a2e';ctx.beginPath();ctx.ellipse(l,-2,7*s,3*s,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(r,-2,7*s,3*s,0,0,Math.PI*2);ctx.fill();});
@@ -1626,7 +1714,7 @@ function drawAgent(agent,wx,wy,t){
   ctx.fillStyle='#e8eeff';ctx.beginPath();ctx.moveTo(-4,-18);ctx.lineTo(0,-9);ctx.lineTo(4,-18);ctx.closePath();ctx.fill();
   // Tie/chain
   if(agent.tieType==='chain'||isDir){ctx.strokeStyle='#ffd700';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,-12,8,Math.PI*0.15,Math.PI*0.85);ctx.stroke();}
-  else if(agent.tie){ctx.fillStyle=agent.tie;ctx.beginPath();ctx.moveTo(-3,-18);ctx.lineTo(3,-18);ctx.lineTo(2,-5);ctx.lineTo(0,4);ctx.lineTo(-2,-5);ctx.closePath();ctx.fill();}
+  else if(agent.tieColor){ctx.fillStyle=agent.tieColor;ctx.beginPath();ctx.moveTo(-3,-18);ctx.lineTo(3,-18);ctx.lineTo(2,-5);ctx.lineTo(0,4);ctx.lineTo(-2,-5);ctx.closePath();ctx.fill();}
   else{ctx.fillStyle='#ffd700';ctx.beginPath();ctx.arc(-2,-12,3,0,Math.PI*2);ctx.fill();}
   // Arms
   [[-17,-as],[17,as]].forEach(([dx,rot])=>{ctx.save();ctx.translate(dx,-13);ctx.rotate(rot*0.22);ctx.fillStyle=blazer;RR(ctx,-4,0,9,16,4);ctx.fill();ctx.fillStyle=skin;RR(ctx,-3,13,7,5,3);ctx.fill();ctx.restore();});
@@ -1649,12 +1737,79 @@ function drawAgent(agent,wx,wy,t){
   if(agent.hat==='crown'||isDir){ctx.fillStyle='#ffd700';ctx.shadowColor='#ffd700';ctx.shadowBlur=6;RR(ctx,-11,-55,22,5,2);ctx.fill();[[-7,0],[-1,0],[5,0],[11,0]].forEach(([px],i)=>{ctx.beginPath();ctx.moveTo(px,-53);ctx.lineTo(px-3,-62+i%2*4);ctx.lineTo(px+3,-62+i%2*4);ctx.closePath();ctx.fill();});ctx.shadowBlur=0;}
   // Status
   const dc=isDir?'#ffd700':'#22c55e';ctx.fillStyle=dc;ctx.shadowColor=dc;ctx.shadowBlur=4;ctx.beginPath();ctx.arc(12,-50,4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  return isDir;
+}
+function drawAgent(agent,wx,wy,t){
+  const pos=iso(wx,wy,0);const bob=Math.sin(t*0.15)*2;
+  const x=pos.x,y=pos.y+bob;
+  ctx.save();ctx.translate(x,y);
+  const isDir=paintAvatarBody(ctx,agent,t);
   // Nametag
   const shortN=(agent.name||'?').split(' ')[0];const nw=shortN.length*5+12;
   ctx.fillStyle='rgba(13,31,51,0.88)';RR(ctx,-nw/2,6,nw,14,3);ctx.fill();
   ctx.strokeStyle=isDir?'rgba(59,130,246,0.5)':'rgba(59,130,246,0.25)';ctx.lineWidth=0.5;RR(ctx,-nw/2,6,nw,14,3);ctx.stroke();
   ctx.fillStyle=isDir?'#ffd700':'#93c5fd';ctx.font='bold 8px sans-serif';ctx.textAlign='center';ctx.fillText(shortN,0,16);
   ctx.restore();
+}
+
+// ===== AVATAR BUILDER (UI) =====
+const AV_HAIRSTYLES=[{v:'short',label:'✂️ Pendek'},{v:'spiky',label:'🔺 Spiky'},{v:'ponytail',label:'🎀 Ponytail'},{v:'long',label:'💇 Panjang'},{v:'hijab',label:'🧕 Hijab'}];
+const AV_SKIN=['#FDBCB4','#F1A874','#D08B5B','#A86B3F','#8D5524','#5C3A21'];
+const AV_BLAZER=['#3b82f6','#1e40af','#ef4444','#22c55e','#8b5cf6','#ec4899','#06b6d4','#f97316'];
+const AV_HAIR=['#2c1810','#1a1a1a','#5c3a1e','#8b5a2b','#3a2010','#6b4423'];
+const AV_TIE=['#ffd700','#3b82f6','#ef4444','#22c55e','#1a1a1a','#8b5cf6'];
+window._avatarDraft=null;window._avatarMandatory=false;
+let avPreviewRaf=null,avPreviewT=0;
+window.openAvatarBuilder=function(mandatory){
+  const d=window._myAgentData||{};
+  window._avatarDraft={
+    name:d.name||(window._currentUser?window._currentUser.email.split('@')[0]:'Agent'),
+    hairStyle:d.hairStyle||'short',hair:d.hair||'#2c1810',
+    hijabColor:d.hijabColor||d.blazer||'#1e40af',skin:d.skin||'#FDBCB4',
+    blazer:d.blazer||d.color||'#3b82f6',tieType:d.tieType||'tie',
+    tieColor:d.tieColor||'#ffd700',isDirector:false
+  };
+  window._avatarMandatory=!!mandatory;
+  document.getElementById('avatar-skip-btn').style.display=mandatory?'none':'flex';
+  document.getElementById('avatar-modal-title').textContent=mandatory?'🎨 Sediakan Avatar Anda':'🎨 Customize Avatar';
+  buildAvatarOptions();
+  document.getElementById('avatar-modal-bg').style.display='flex';
+  avPreviewT=0;if(avPreviewRaf)cancelAnimationFrame(avPreviewRaf);
+  avatarPreviewFrame();
+};
+window.closeAvatarBuilder=function(){
+  if(window._avatarMandatory)return;
+  document.getElementById('avatar-modal-bg').style.display='none';
+  if(avPreviewRaf)cancelAnimationFrame(avPreviewRaf);avPreviewRaf=null;
+};
+function avatarPreviewFrame(){
+  const cvs=document.getElementById('avatar-preview-canvas');if(!cvs)return;
+  const pctx=cvs.getContext('2d');
+  pctx.clearRect(0,0,cvs.width,cvs.height);
+  pctx.save();pctx.translate(cvs.width/2,cvs.height*0.74);pctx.scale(1.7,1.7);
+  paintAvatarBody(pctx,window._avatarDraft,avPreviewT);
+  pctx.restore();avPreviewT++;
+  avPreviewRaf=requestAnimationFrame(avatarPreviewFrame);
+}
+window.setAvatarOpt=function(key,val,el){
+  window._avatarDraft[key]=val;
+  if(el){el.parentElement.querySelectorAll('.av-opt,.av-swatch').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+  if(key==='hairStyle'||key==='tieType')buildAvatarOptions();
+};
+function buildAvatarOptions(){
+  const d=window._avatarDraft;
+  document.getElementById('av-hairstyle-row').innerHTML=AV_HAIRSTYLES.map(h=>`<button class="av-opt ${d.hairStyle===h.v?'active':''}" onclick="setAvatarOpt('hairStyle','${h.v}',this)">${h.label}</button>`).join('');
+  document.getElementById('av-haircolor-label').textContent=d.hairStyle==='hijab'?'Warna Tudung':'Warna Rambut';
+  const haircolors=d.hairStyle==='hijab'?AV_BLAZER:AV_HAIR;
+  const curHairColor=d.hairStyle==='hijab'?d.hijabColor:d.hair;
+  const hcKey=d.hairStyle==='hijab'?'hijabColor':'hair';
+  document.getElementById('av-haircolor-row').innerHTML=haircolors.map(c=>`<button class="av-swatch ${curHairColor===c?'active':''}" style="background:${c}" onclick="setAvatarOpt('${hcKey}','${c}',this)"></button>`).join('');
+  document.getElementById('av-skin-row').innerHTML=AV_SKIN.map(c=>`<button class="av-swatch ${d.skin===c?'active':''}" style="background:${c}" onclick="setAvatarOpt('skin','${c}',this)"></button>`).join('');
+  document.getElementById('av-blazer-row').innerHTML=AV_BLAZER.map(c=>`<button class="av-swatch ${d.blazer===c?'active':''}" style="background:${c}" onclick="setAvatarOpt('blazer','${c}',this)"></button>`).join('');
+  document.getElementById('av-tie-tie-btn').classList.toggle('active',d.tieType!=='chain');
+  document.getElementById('av-tie-chain-btn').classList.toggle('active',d.tieType==='chain');
+  document.getElementById('av-tiecolor-section').style.display=d.tieType==='chain'?'none':'block';
+  document.getElementById('av-tiecolor-row').innerHTML=AV_TIE.map(c=>`<button class="av-swatch ${d.tieColor===c?'active':''}" style="background:${c}" onclick="setAvatarOpt('tieColor','${c}',this)"></button>`).join('');
 }
 
 function updateWalk(){
