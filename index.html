@@ -706,11 +706,25 @@ body{font-family:'Segoe UI',sans-serif;background:#0a1628;color:#fff;overflow:hi
         <div class="blast-tools">
           <div class="blast-tpl-row">
             <select class="form-select" id="blast-tpl" onchange="loadBlastTemplate()">
-              <option value="property">🏠 Pengenalan — Property</option>
-              <option value="loan">💳 Pengenalan — Loan</option>
-              <option value="travel">✈️ Pengenalan — Travel</option>
-              <option value="followup">🔄 Susulan</option>
-              <option value="custom">✏️ Custom</option>
+              <optgroup label="🏠 Property">
+                <option value="property_intro">🏠 Perkenalan</option>
+                <option value="property_viewing">🏠 Susulan Tinjauan</option>
+                <option value="property_offer">🏠 Tawaran Istimewa</option>
+              </optgroup>
+              <optgroup label="💳 Loan">
+                <option value="loan_intro">💳 Perkenalan</option>
+                <option value="loan_status">💳 Status & Dokumen</option>
+                <option value="loan_docs">💳 Susulan Dokumen</option>
+              </optgroup>
+              <optgroup label="✈️ Travel">
+                <option value="travel_intro">✈️ Perkenalan</option>
+                <option value="travel_booking">✈️ Sahkan Minat</option>
+                <option value="travel_reminder">✈️ Peringatan Persediaan</option>
+              </optgroup>
+              <optgroup label="Umum">
+                <option value="followup">🔄 Susulan Umum</option>
+                <option value="custom">✏️ Custom</option>
+              </optgroup>
             </select>
             <span class="blast-hint">Pilih template, edit ikut suka, lepas tu klik "Hantar" kat setiap lead.</span>
           </div>
@@ -1006,6 +1020,7 @@ function switchView(name,navEl){
   if(name==='stats')setTimeout(updateBars,150);
   if(name==='portal')renderPortal();
   if(name==='blast'){
+    renderBlastTplOptions(window._blastFilter||'all');
     if(!document.getElementById('blast-msg').value)loadBlastTemplate();
     renderBlastList();
   }
@@ -1067,11 +1082,46 @@ window.setTab=function(el){document.querySelectorAll('.ftab').forEach(t=>t.class
 
 // ===== WA BLAST =====
 const BLAST_TEMPLATES={
-  property:'Salam {nama} 👋\n\nSaya dari AIS Group (Property). Berminat nak tahu pilihan hartanah yang sesuai dengan keperluan {nama}? Saya boleh kongsikan beberapa opsyen terbaik.\n\nBila boleh kita borak sekejap? 🙏',
-  loan:'Salam {nama} 👋\n\nSaya dari AIS Group (Personal Loan). Berminat nak semak kelayakan pinjaman {nama}? Proses cepat & terus dengan bank/institusi berlesen.\n\nBoleh kita borak sekejap? 🙏',
-  travel:'Salam {nama} 👋\n\nSaya dari AIS Group Travel. Ada beberapa pakej percutian menarik yang mungkin sesuai untuk {nama}. Nak saya kongsikan butiran?\n\nBila boleh kita borak? 🙏',
+  property_intro:'Salam {nama} 👋\n\nSaya dari AIS Group (Property). Berminat nak tahu pilihan hartanah yang sesuai dengan keperluan {nama}? Saya boleh kongsikan beberapa opsyen terbaik.\n\nBila boleh kita borak sekejap? 🙏',
+  property_viewing:'Hai {nama}! 🏠\n\nSekadar follow up berkenaan unit hartanah yang kita bincangkan sebelum ini.\n\nAdakah {nama} masih berminat untuk buat viewing? Saya boleh atur masa yang sesuai bila-bila masa.',
+  property_offer:'Salam {nama}! 🎉\n\nAda tawaran istimewa untuk unit hartanah yang sesuai dengan keperluan {nama} buat masa ni.\n\nJom kita borak — jangan lepaskan peluang ni! 📞',
+  loan_intro:'Salam {nama} 👋\n\nSaya dari AIS Group (Personal Loan). Berminat nak semak kelayakan pinjaman {nama}? Proses cepat & terus dengan bank/institusi berlesen.\n\nBoleh kita borak sekejap? 🙏',
+  loan_status:'Hai {nama}! 🎉\n\nUntuk teruskan proses kelulusan pinjaman {nama}, sila sediakan dokumen berikut:\n📄 Slip gaji 3 bulan\n📋 IC salinan\n🏦 Penyata bank 3 bulan\n\nBoleh hantar terus dalam chat ni. Terima kasih!',
+  loan_docs:'Salam {nama},\n\nSekadar follow up — kami masih menunggu dokumen sokongan untuk permohonan pinjaman {nama}.\n\nKalau ada apa-apa kekangan atau soalan, bagitahu saya, saya bantu. 📞',
+  travel_intro:'Salam {nama} 👋\n\nSaya dari AIS Group Travel. Ada beberapa pakej percutian menarik yang mungkin sesuai untuk {nama}. Nak saya kongsikan butiran?\n\nBila boleh kita borak? 🙏',
+  travel_booking:'Hai {nama}! 🎉\n\nTerima kasih atas minat {nama} untuk pakej percutian kami!\n\nBoleh saya kongsikan butiran pakej dan harga penuh? Lepas {nama} okay, kita teruskan proses tempahan. ✈️',
+  travel_reminder:'Salam {nama}! ✈️\n\nSekadar peringatan mesra — kalau {nama} dah confirm tarikh percutian, jangan lupa semak:\n✅ Passport sah (6 bulan ke atas)\n✅ Tiket & itinerary disimpan\n✅ Beg pakaian disediakan awal\n\nKalau perlu bantuan, saya sentiasa available! 🌟',
   followup:'Salam {nama},\n\nSaya nak follow-up balik pasal perbincangan kita sebelum ni. Ada apa-apa soalan tambahan, atau perlukan maklumat lanjut?\n\nSaya available untuk bantu bila-bila masa 🙏',
   custom:''
+};
+const BLAST_TPL_META={
+  property_intro:{label:'🏠 Perkenalan',mod:'Property'},
+  property_viewing:{label:'🏠 Susulan Tinjauan',mod:'Property'},
+  property_offer:{label:'🏠 Tawaran Istimewa',mod:'Property'},
+  loan_intro:{label:'💳 Perkenalan',mod:'Loan'},
+  loan_status:{label:'💳 Status & Dokumen',mod:'Loan'},
+  loan_docs:{label:'💳 Susulan Dokumen',mod:'Loan'},
+  travel_intro:{label:'✈️ Perkenalan',mod:'Travel'},
+  travel_booking:{label:'✈️ Sahkan Minat',mod:'Travel'},
+  travel_reminder:{label:'✈️ Peringatan Persediaan',mod:'Travel'},
+  followup:{label:'🔄 Susulan Umum',mod:'all'},
+  custom:{label:'✏️ Custom',mod:'all'}
+};
+window.renderBlastTplOptions=function(mod){
+  const sel=document.getElementById('blast-tpl');if(!sel)return;
+  const groups={Property:[],Loan:[],Travel:[],all:[]};
+  Object.keys(BLAST_TPL_META).forEach(k=>{const m=BLAST_TPL_META[k];groups[m.mod].push(`<option value="${k}">${m.label}</option>`);});
+  let html='';
+  if(mod==='all'){
+    html+=`<optgroup label="🏠 Property">${groups.Property.join('')}</optgroup>`;
+    html+=`<optgroup label="💳 Loan">${groups.Loan.join('')}</optgroup>`;
+    html+=`<optgroup label="✈️ Travel">${groups.Travel.join('')}</optgroup>`;
+    html+=`<optgroup label="Umum">${groups.all.join('')}</optgroup>`;
+  } else {
+    html+=groups[mod].join('');
+    html+=`<optgroup label="Umum">${groups.all.join('')}</optgroup>`;
+  }
+  sel.innerHTML=html;
 };
 window.loadBlastTemplate=function(){
   const key=document.getElementById('blast-tpl').value;
@@ -1082,14 +1132,17 @@ window.blastFilter=function(mod,el){
   window._blastFilter=mod;
   document.querySelectorAll('#blast-ftabs .ftab').forEach(t=>t.classList.remove('active'));
   if(el)el.classList.add('active');
-  const tplMap={Property:'property',Loan:'loan',Travel:'travel'};
-  if(tplMap[mod]){document.getElementById('blast-tpl').value=tplMap[mod];loadBlastTemplate();}
+  const groupMap={Property:'Property',Loan:'Loan',Travel:'Travel',all:'all'};
+  renderBlastTplOptions(groupMap[mod]||'all');
+  const introMap={Property:'property_intro',Loan:'loan_intro',Travel:'travel_intro'};
+  document.getElementById('blast-tpl').value=introMap[mod]||'followup';
+  loadBlastTemplate();
   renderBlastList();
 };
 window.kbWaSend=async function(id){
   const l=(window._leads||[]).find(x=>x.id===id);if(!l)return;
   if(!l.phone){showToast('Tiada no. telefon — sila tambah dulu');editLead(id);return;}
-  const tplKey=l.module==='Property'?'property':l.module==='Loan'?'loan':'travel';
+  const tplKey=l.module==='Property'?'property_intro':l.module==='Loan'?'loan_intro':'travel_intro';
   const msg=BLAST_TEMPLATES[tplKey].replace(/\{nama\}/g,l.name);
   const phone=l.phone.replace(/\D/g,'').replace(/^0/,'60');
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
